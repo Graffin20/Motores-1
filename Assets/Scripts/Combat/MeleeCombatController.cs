@@ -307,8 +307,11 @@ namespace StarterAssets.Combat
             {
                 if (hit.transform.root == transform.root) continue; // don't hit self
 
-                // TODO: replace with your actual damageable interface, e.g.:
-                // if (hit.TryGetComponent<IDamageable>(out var damageable)) damageable.TakeDamage(damage);
+                if (hit.TryGetComponent<IDamageable>(out var damageable))
+                {
+                    damageable.TakeDamage(damage);
+                }
+                
                 Debug.Log($"{name} hit {hit.name} for {damage} damage.");
             }
 
