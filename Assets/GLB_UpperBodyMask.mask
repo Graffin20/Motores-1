@@ -1,0 +1,145 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!319 &31900000
+AvatarMask:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: GLB_UpperBodyMask
+  m_Mask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+  m_Elements:
+  - m_Path: Skinned Mesh 0
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigNeck
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigNeck/mixamorigHead
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigNeck/mixamorigHead/mixamorigHeadTop_End
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandIndex1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandIndex1/mixamorigLeftHandIndex2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandIndex1/mixamorigLeftHandIndex2/mixamorigLeftHandIndex3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandIndex1/mixamorigLeftHandIndex2/mixamorigLeftHandIndex3/mixamorigLeftHandIndex4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandMiddle1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandMiddle1/mixamorigLeftHandMiddle2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandMiddle1/mixamorigLeftHandMiddle2/mixamorigLeftHandMiddle3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandMiddle1/mixamorigLeftHandMiddle2/mixamorigLeftHandMiddle3/mixamorigLeftHandMiddle4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandPinky1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandPinky1/mixamorigLeftHandPinky2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandPinky1/mixamorigLeftHandPinky2/mixamorigLeftHandPinky3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandPinky1/mixamorigLeftHandPinky2/mixamorigLeftHandPinky3/mixamorigLeftHandPinky4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandRing1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandRing1/mixamorigLeftHandRing2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandRing1/mixamorigLeftHandRing2/mixamorigLeftHandRing3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandRing1/mixamorigLeftHandRing2/mixamorigLeftHandRing3/mixamorigLeftHandRing4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandThumb1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandThumb1/mixamorigLeftHandThumb2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandThumb1/mixamorigLeftHandThumb2/mixamorigLeftHandThumb3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigLeftShoulder/mixamorigLeftArm/mixamorigLeftForeArm/mixamorigLeftHand/mixamorigLeftHandThumb1/mixamorigLeftHandThumb2/mixamorigLeftHandThumb3/mixamorigLeftHandThumb4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandIndex1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandIndex1/mixamorigRightHandIndex2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandIndex1/mixamorigRightHandIndex2/mixamorigRightHandIndex3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandIndex1/mixamorigRightHandIndex2/mixamorigRightHandIndex3/mixamorigRightHandIndex4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandMiddle1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandMiddle1/mixamorigRightHandMiddle2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandMiddle1/mixamorigRightHandMiddle2/mixamorigRightHandMiddle3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandMiddle1/mixamorigRightHandMiddle2/mixamorigRightHandMiddle3/mixamorigRightHandMiddle4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandPinky1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandPinky1/mixamorigRightHandPinky2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandPinky1/mixamorigRightHandPinky2/mixamorigRightHandPinky3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandPinky1/mixamorigRightHandPinky2/mixamorigRightHandPinky3/mixamorigRightHandPinky4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandRing1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandRing1/mixamorigRightHandRing2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandRing1/mixamorigRightHandRing2/mixamorigRightHandRing3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandRing1/mixamorigRightHandRing2/mixamorigRightHandRing3/mixamorigRightHandRing4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandThumb1
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandThumb1/mixamorigRightHandThumb2
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandThumb1/mixamorigRightHandThumb2/mixamorigRightHandThumb3
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigSpine/mixamorigSpine1/mixamorigSpine2/mixamorigRightShoulder/mixamorigRightArm/mixamorigRightForeArm/mixamorigRightHand/mixamorigRightHandThumb1/mixamorigRightHandThumb2/mixamorigRightHandThumb3/mixamorigRightHandThumb4
+    m_Weight: 1
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigLeftUpLeg
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigLeftUpLeg/mixamorigLeftLeg
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigLeftUpLeg/mixamorigLeftLeg/mixamorigLeftFoot
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigLeftUpLeg/mixamorigLeftLeg/mixamorigLeftFoot/mixamorigLeftToeBase
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigLeftUpLeg/mixamorigLeftLeg/mixamorigLeftFoot/mixamorigLeftToeBase/mixamorigLeftToe_End
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigRightUpLeg
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigRightUpLeg/mixamorigRightLeg
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigRightUpLeg/mixamorigRightLeg/mixamorigRightFoot
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigRightUpLeg/mixamorigRightLeg/mixamorigRightFoot/mixamorigRightToeBase
+    m_Weight: 0
+  - m_Path: Skinned Mesh 0/root/mixamorigHips/mixamorigRightUpLeg/mixamorigRightLeg/mixamorigRightFoot/mixamorigRightToeBase/mixamorigRightToe_End
+    m_Weight: 0
