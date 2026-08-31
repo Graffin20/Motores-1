@@ -14,6 +14,11 @@ namespace StarterAssets.Combat
         [Tooltip("Animator trigger parameter name fired for this stage, e.g. \"Attack1\".")]
         public string AnimationTrigger = "Attack1";
         public float Damage = 10f;
+        public float StaminaCost = 8f;
+        [Tooltip("Multiplies the defender's own KnockbackDistance (see Health) — 1 = defender's default.")]
+        public float KnockbackDistanceMultiplier = 1f;
+        [Tooltip("Multiplies the defender's own KnockbackDuration (see Health) — 1 = defender's default. Independent from the distance multiplier.")]
+        public float KnockbackDurationMultiplier = 1f;
     }
 
     /// <summary>
@@ -29,6 +34,9 @@ namespace StarterAssets.Combat
     ///   - AE_AttackEnd()      at the very end of the clip, when the next action is allowed
     /// Plus, wherever the actual hit lands within the Active window:
     ///   - ApplyHitboxDamage() on the hit frame(s)
+    /// Optionally, wherever the attack should be cancelable into a roll (see RollController):
+    ///   - AE_RollCancelOpen()  opens the cancel window
+    ///   - AE_RollCancelClose() closes it early (otherwise it auto-closes at AE_AttackEnd)
     ///
     /// Combo rules:
     /// - Light attacks chain 1 -> 2 -> 3. After 3, the combo ends and ComboCooldownDuration
@@ -64,6 +72,11 @@ namespace StarterAssets.Combat
         [Header("Heavy Attack (standalone or combo finisher)")]
         public string HeavyAnimationTrigger = "HeavyAttack";
         public float HeavyAttackDamage = 22f;
+        public float HeavyAttackStaminaCost = 15f;
+        [Tooltip("Multiplies the defender's own KnockbackDistance (see Health) — 1 = defender's default.")]
+        public float HeavyKnockbackDistanceMultiplier = 1.5f;
+        [Tooltip("Multiplies the defender's own KnockbackDuration (see Health) — 1 = defender's default. Independent from the distance multiplier.")]
+        public float HeavyKnockbackDurationMultiplier = 1.5f;
 
         [Header("Hit Detection")]
         [Tooltip("Local offset from this transform for the hitbox sphere, e.g. out in front of the character.")]
@@ -91,7 +104,13 @@ namespace StarterAssets.Combat
         private bool _bufferedIsHeavy;
         private int _bufferedComboIndex; // only meaningful when _bufferedIsHeavy == false
 
+        // True during a window opened by AE_RollCancelOpen() on the current clip — lets
+        // RequestCancelForRoll() know the current attack may be aborted into a roll.
+        private bool _canCancelIntoRoll;
+
         private IMeleeCombatInputSource _inputSource;
+        private StaminaSystem _stamina;
+        private BlockController _block;
         private Animator _animator;
         private bool _hasAnimator;
 
@@ -103,6 +122,10 @@ namespace StarterAssets.Combat
         /// Note: does NOT cover the post-combo cooldown window, since the character has
         /// regained control by then — only the next *attack* is locked out.</summary>
         public bool IsAttacking => _phase != AttackPhase.Idle;
+
+        /// <summary>True while the current attack is inside a roll-cancel window
+        /// (opened via AE_RollCancelOpen on the clip).</summary>
+        public bool CanCancelIntoRoll => _canCancelIntoRoll;
 
         private void Awake()
         {
@@ -116,6 +139,8 @@ namespace StarterAssets.Combat
             }
 
             _hasAnimator = TryGetComponent(out _animator);
+            _stamina = GetComponent<StaminaSystem>(); // optional — null means attacks are unrestricted by stamina
+            _block = GetComponent<BlockController>(); // optional — null means blocking never prevents attacks
 
             _comboTriggerHashes = ComboStages.Select(s => Animator.StringToHash(s.AnimationTrigger)).ToArray();
             _heavyTriggerHash = Animator.StringToHash(HeavyAnimationTrigger);
@@ -176,20 +201,27 @@ namespace StarterAssets.Combat
 
         private void TryStartAttackFromIdle()
         {
+            if (_block != null && _block.IsBlocking) return;
+
             if (_inputSource.HeavyAttackRequested)
             {
                 _inputSource.ConsumeHeavyAttackRequest();
-                BeginHeavyAttack();
+                if (HasEnoughStamina(HeavyAttackStaminaCost)) BeginHeavyAttack();
             }
             else if (_inputSource.AttackRequested)
             {
                 _inputSource.ConsumeAttackRequest();
-                BeginLightAttack(stageIndex: 0);
+                if (HasEnoughStamina(ComboStages[0].StaminaCost)) BeginLightAttack(stageIndex: 0);
             }
         }
 
+        /// <summary>Checks and spends in one step — false means nothing was spent.</summary>
+        private bool HasEnoughStamina(float cost) => _stamina == null || _stamina.TrySpend(cost);
+
         private void TryBufferNextAttack()
         {
+            if (_block != null && _block.IsBlocking) return;
+
             bool canFinisher = CanQueueHeavyFinisher();
             bool canContinueCombo = CanContinueLightCombo();
 
@@ -228,6 +260,7 @@ namespace StarterAssets.Combat
             _comboIndex = stageIndex;
             _hasDamagedThisSwing = false;
             _bufferedAttack = false; // never start an attack carrying leftover buffer state
+            _canCancelIntoRoll = false; // each attack opens its own window fresh, via its own AE_RollCancelOpen
             EnterPhase(AttackPhase.Windup);
 
             if (_hasAnimator) _animator.SetTrigger(_comboTriggerHashes[stageIndex]);
@@ -238,6 +271,7 @@ namespace StarterAssets.Combat
             _isHeavyAttack = true;
             _hasDamagedThisSwing = false;
             _bufferedAttack = false; // never start an attack carrying leftover buffer state
+            _canCancelIntoRoll = false;
             EnterPhase(AttackPhase.Windup);
 
             if (_hasAnimator) _animator.SetTrigger(_heavyTriggerHash);
@@ -265,6 +299,82 @@ namespace StarterAssets.Combat
             EnterPhase(AttackPhase.Recovery);
         }
 
+        /// <summary>
+        /// Place on a clip wherever it's OK to abort the attack into a roll — typically somewhere
+        /// in Recovery, once the hit has already landed. Stays open until AE_RollCancelClose(),
+        /// or automatically closes when the attack ends normally via AE_AttackEnd().
+        /// </summary>
+        public void AE_RollCancelOpen()
+        {
+            if (_phase == AttackPhase.Idle) return;
+            _canCancelIntoRoll = true;
+        }
+
+        /// <summary>Place later on the same clip if the cancel window should close before the clip ends
+        /// (e.g. to stop a cancel right before a combo-finisher moment). Optional — AE_AttackEnd()
+        /// already closes the window automatically at the end of the clip.</summary>
+        public void AE_RollCancelClose()
+        {
+            _canCancelIntoRoll = false;
+        }
+
+        /// <summary>
+        /// Called by RollController before starting a roll. Returns true if it's fine to roll right
+        /// now — either because nothing is happening, or because the current attack is inside its
+        /// designated cancel window — and in the latter case aborts the attack immediately.
+        /// </summary>
+        public bool RequestCancelForRoll()
+        {
+            if (_phase == AttackPhase.Idle) return true;
+            if (!_canCancelIntoRoll) return false;
+
+            // Deliberately no ComboCooldownDuration here — bailing into a roll is a defensive
+            // choice mid-attack, not a completed combo. Revisit if this turns out to be
+            // exploitable as a way to skip the cooldown by always canceling the 3rd hit.
+            ResetAttackState();
+            return true;
+        }
+
+        /// <summary>
+        /// Immediately aborts whatever attack is in progress — called by Health when the character
+        /// takes damage, so a swing doesn't visually continue while staggering (or dying). Unlike
+        /// RequestCancelForRoll(), this doesn't check CanCancelIntoRoll: getting hit isn't a choice
+        /// the player is making, so it interrupts regardless of any designer-placed cancel window.
+        /// </summary>
+        public void ForceCancelAttack()
+        {
+            if (_phase == AttackPhase.Idle) return;
+
+            ResetAttackState();
+
+            // Unlike the roll-cancel, a forced interruption DOES apply the combo cooldown — being
+            // hit breaks the combo rhythm regardless of which hit you were on, so the moment
+            // hitstun ends shouldn't let you resume mid-combo instantly.
+            _comboLockoutTimer = ComboCooldownDuration;
+
+            // Defensively clear any combo/heavy trigger that may have been set but not yet
+            // consumed by its transition — otherwise it can sit armed on the Animator and fire
+            // as a phantom attack later, once the Hit/Die state exits back to combat idle. Same
+            // class of bug as the stray-buffered-state issue we fixed on the combo state machine.
+            if (_hasAnimator)
+            {
+                foreach (var hash in _comboTriggerHashes) _animator.ResetTrigger(hash);
+                _animator.ResetTrigger(_heavyTriggerHash);
+            }
+        }
+
+        /// <summary>Shared reset used by both RequestCancelForRoll() and ForceCancelAttack() —
+        /// wipes all in-progress-attack state back to Idle. Callers are responsible for deciding
+        /// whether ComboCooldownDuration applies afterward.</summary>
+        private void ResetAttackState()
+        {
+            EnterPhase(AttackPhase.Idle);
+            _isHeavyAttack = false;
+            _comboIndex = -1;
+            _bufferedAttack = false;
+            _canCancelIntoRoll = false;
+        }
+
         /// <summary>Place at the very end of the clip — the attack is fully finished and the next action is allowed.</summary>
         public void AE_AttackEnd()
         {
@@ -274,6 +384,7 @@ namespace StarterAssets.Combat
             EnterPhase(AttackPhase.Idle);
             _isHeavyAttack = false;
             _comboIndex = -1;
+            _canCancelIntoRoll = false;
 
             if (comboEnded)
             {
@@ -286,8 +397,14 @@ namespace StarterAssets.Combat
             else if (_bufferedAttack)
             {
                 _bufferedAttack = false;
-                if (_bufferedIsHeavy) BeginHeavyAttack();
-                else BeginLightAttack(_bufferedComboIndex);
+                if (_bufferedIsHeavy)
+                {
+                    if (HasEnoughStamina(HeavyAttackStaminaCost)) BeginHeavyAttack();
+                }
+                else if (HasEnoughStamina(ComboStages[_bufferedComboIndex].StaminaCost))
+                {
+                    BeginLightAttack(_bufferedComboIndex);
+                }
             }
         }
 
@@ -302,14 +419,21 @@ namespace StarterAssets.Combat
             Collider[] hits = Physics.OverlapSphere(origin, HitboxRadius, HittableLayers);
 
             float damage = _isHeavyAttack ? HeavyAttackDamage : ComboStages[_comboIndex].Damage;
+            float knockbackDistanceMultiplier = _isHeavyAttack ? HeavyKnockbackDistanceMultiplier : ComboStages[_comboIndex].KnockbackDistanceMultiplier;
+            float knockbackDurationMultiplier = _isHeavyAttack ? HeavyKnockbackDurationMultiplier : ComboStages[_comboIndex].KnockbackDurationMultiplier;
 
             foreach (var hit in hits)
             {
                 if (hit.transform.root == transform.root) continue; // don't hit self
 
-                // TODO: replace with your actual damageable interface, e.g.:
-                // if (hit.TryGetComponent<IDamageable>(out var damageable)) damageable.TakeDamage(damage);
-                Debug.Log($"{name} hit {hit.name} for {damage} damage.");
+                if (hit.TryGetComponent<IDamageable>(out var damageable))
+                {
+                    damageable.TakeDamage(damage, transform.position, knockbackDistanceMultiplier, knockbackDurationMultiplier);
+                }
+                else
+                {
+                    Debug.Log($"{name} hit {hit.name} for {damage} damage, but it has no IDamageable component.");
+                }
             }
 
             _hasDamagedThisSwing = true;
