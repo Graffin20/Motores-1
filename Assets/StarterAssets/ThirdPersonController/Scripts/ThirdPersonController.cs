@@ -91,6 +91,9 @@ namespace StarterAssets
         private float _verticalVelocity;
         private float _terminalVelocity = 53.0f;
 
+        private Health _health;
+        private RollController _roll;
+
         // timeout deltatime
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
@@ -137,6 +140,9 @@ namespace StarterAssets
             {
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
+
+            _health = GetComponent<Health>();
+            _roll = GetComponent<RollController>();
         }
 
         private void Start()
@@ -221,9 +227,15 @@ namespace StarterAssets
 
         private void Move()
         {
-            if (_combat != null && _combat.IsAttacking)
+            bool isAttacking = _combat != null && _combat.IsAttacking;
+            bool isRolling = _roll != null && _roll.IsRolling;
+            bool isHitStunnedOrDead = _health != null && (_health.IsHitStunned || _health.IsDead);
+
+            if (isAttacking || isRolling || isHitStunnedOrDead)
             {
-                // still apply gravity so they don't float, but skip rotation/speed changes
+                // Still apply gravity so the character doesn't float, but skip rotation/speed changes —
+                // whichever system is in control (RollController, or nothing if stunned/dead) owns
+                // movement right now, not normal locomotion input.
                 _controller.Move(new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime);
                 return;
             }

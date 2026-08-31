@@ -11,6 +11,10 @@ namespace StarterAssets.Combat
     ///
     /// Costs stamina via StaminaSystem if one is present on this GameObject (optional — rolling
     /// is unrestricted if no StaminaSystem is attached).
+    ///
+    /// Optionally invulnerable during part of the roll: place AE_IFrameStart() and AE_IFrameEnd()
+    /// on the clip wherever the dodge should actually avoid damage. Health checks IsInvulnerable
+    /// before applying any hit, so no changes are needed on the attacker's side.
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class RollController : MonoBehaviour
@@ -18,6 +22,7 @@ namespace StarterAssets.Combat
         [Header("Roll Movement")]
         public float RollDistance = 3f;
         public float RollDuration = 0.4f;
+        public float RotationSpeed = 10f; // Smooth rotation speed multiplier
 
         [Header("Stamina")]
         public float RollStaminaCost = 20f;
@@ -34,6 +39,8 @@ namespace StarterAssets.Combat
         private StaminaSystem _stamina;
         private MeleeCombatController _combat;
         private BlockController _block;
+        private Health _health;
+        private StarterAssetsInputs _input;
         private IMeleeCombatInputSource _inputSource;
         private Animator _animator;
         private bool _hasAnimator;
@@ -42,11 +49,17 @@ namespace StarterAssets.Combat
         private bool _isRolling;
         private float _rollTimer;
         private Vector3 _rollDirection;
+        private bool _isInvulnerable;
+        private Quaternion _targetRotation; // Add this to track target rotation
 
         /// <summary>True while the roll is in progress — read this from ThirdPersonController.Move()
         /// (alongside MeleeCombatController.IsAttacking) to suppress normal locomotion during the roll,
         /// and from MeleeCombatController to prevent attacking mid-roll if that's the feel you want.</summary>
         public bool IsRolling => _isRolling;
+
+        /// <summary>True during the invulnerability window opened by AE_IFrameStart() on the roll clip.
+        /// Health checks this before applying any damage.</summary>
+        public bool IsInvulnerable => _isInvulnerable;
 
         private void Awake()
         {
@@ -54,9 +67,11 @@ namespace StarterAssets.Combat
             _stamina = GetComponent<StaminaSystem>();       // optional — null is fine, roll just goes unrestricted
             _combat = GetComponent<MeleeCombatController>(); // optional — null means nothing blocks rolling on attack state
             _block = GetComponent<BlockController>();         // optional — null means blocking never prevents rolling
+            _health = GetComponent<Health>();                  // optional — null means no hitstun/death gating
             _inputSource = GetComponent<IMeleeCombatInputSource>();
             _hasAnimator = TryGetComponent(out _animator);
             _rollTriggerHash = Animator.StringToHash(RollAnimationTrigger);
+            _input = GetComponent<StarterAssetsInputs>();
 
             if (_inputSource == null)
             {
@@ -86,26 +101,34 @@ namespace StarterAssets.Combat
         private void TryStartRoll()
         {
             if (_block != null && _block.IsBlocking) return;
+            if (_health != null && (_health.IsHitStunned || _health.IsDead)) return;
 
-            // Check stamina BEFORE asking to cancel the attack — if there isn't enough stamina to
-            // actually roll, we must not abort a perfectly good attack for nothing. HasEnoughStamina
-            // has no side effect, so it's safe to check ahead of committing to anything.
             if (_stamina != null && !_stamina.HasEnoughStamina(RollStaminaCost)) return;
 
-            // Ask the combat state machine directly rather than inspecting the Animator's current
-            // state by name — MeleeCombatController already knows whether it's mid-attack (and
-            // whether the clip has opened a cancel window via AE_RollCancelOpen), and that stays
-            // correct even if the Animator's state layout changes later. If an attack is in
-            // progress and NOT cancelable right now, this returns false and the roll is refused.
             if (_combat != null && !_combat.RequestCancelForRoll()) return;
 
-            // Now actually spend it — guaranteed to succeed given the check above (nothing else
-            // runs between these two calls on Unity's single-threaded update).
             _stamina?.TrySpend(RollStaminaCost);
 
             _isRolling = true;
             _rollTimer = MaxRollSafetyDuration;
-            _rollDirection = transform.forward;
+            if (_input.move != Vector2.zero)
+            {
+                // Get the player's facing direction in world space
+                Vector3 forward = transform.forward;
+                Vector3 right = transform.right;
+                
+                // Combine input using the player's orientation, not global axes
+                Vector3 moveDir = new Vector3(_input.move.x, 0f, _input.move.y).normalized;
+                _rollDirection = (forward * moveDir.z + right * moveDir.x).normalized;
+                _targetRotation = Quaternion.LookRotation(_rollDirection);
+            }
+            else
+            {
+                // no input? roll straight forward relative to the character's current facing
+                _rollDirection = transform.forward;
+                _targetRotation = transform.rotation;
+            }
+            _isInvulnerable = false;
 
             if (_hasAnimator) _animator.SetTrigger(_rollTriggerHash);
         }
@@ -118,17 +141,14 @@ namespace StarterAssets.Combat
             if (_rollTimer <= 0f)
             {
                 _isRolling = false;
+                _isInvulnerable = false; // don't let a force-ended roll leave i-frames stuck on
                 return;
             }
 
-            float speed = RollDistance / RollDuration;
+            // Smoothly rotate towards target
+            transform.rotation = Quaternion.Lerp(transform.rotation, _targetRotation, Time.deltaTime * RotationSpeed);
 
-            // NOTE: this does not apply gravity/vertical velocity — ThirdPersonController owns
-            // that value privately. If rolls need to respect falling (e.g. rolling off a ledge),
-            // expose ThirdPersonController's vertical velocity via a public getter and blend it
-            // in here, e.g.:
-            //   Vector3 verticalMotion = Vector3.up * thirdPersonController.VerticalVelocity;
-            //   _controller.Move((_rollDirection * speed + verticalMotion) * Time.deltaTime);
+            float speed = RollDistance / RollDuration;
             _controller.Move(_rollDirection * speed * Time.deltaTime);
         }
 
@@ -138,6 +158,23 @@ namespace StarterAssets.Combat
         private void AE_IsRolling()
         {
             _isRolling = false;
+            _isInvulnerable = false; // don't let i-frames outlive the roll if AE_IFrameEnd was missed
+        }
+
+        /// <summary>Animation Event — place wherever the dodge should actually start avoiding damage.</summary>
+        private void AE_IFrameStart()
+        {
+            if (!_isRolling) return;
+            _isInvulnerable = true;
+        }
+
+        /// <summary>Animation Event — place wherever the invulnerability window should close.
+        /// Optional if you want i-frames to last the entire roll: AE_IsRolling() already clears
+        /// this automatically when the roll ends, so an explicit end event is only needed if the
+        /// window should close before the roll animation itself finishes.</summary>
+        private void AE_IFrameEnd()
+        {
+            _isInvulnerable = false;
         }
     }
-}
+}   

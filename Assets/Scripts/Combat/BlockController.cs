@@ -23,6 +23,7 @@ namespace StarterAssets.Combat
 
         private IMeleeCombatInputSource _inputSource;
         private StaminaSystem _stamina;
+        private Health _health;
         private Animator _animator;
         private bool _hasAnimator;
         private int _blockBoolHash;
@@ -34,6 +35,7 @@ namespace StarterAssets.Combat
         {
             _inputSource = GetComponents<MonoBehaviour>().OfType<IMeleeCombatInputSource>().FirstOrDefault();
             _stamina = GetComponent<StaminaSystem>(); // optional, for future stamina-drain-while-blocking logic
+            _health = GetComponent<Health>();          // optional — null means no hitstun/death gating
             _hasAnimator = TryGetComponent(out _animator);
             _blockBoolHash = Animator.StringToHash(BlockAnimatorBool);
 
@@ -65,11 +67,17 @@ namespace StarterAssets.Combat
 
             bool wantsToBlock = _inputSource.BlockHeld;
 
+            if (_health != null && (_health.IsHitStunned || _health.IsDead))
+            {
+                wantsToBlock = false; // forcibly drops an already-active block, not just refusing a new one
+            }
+
             // ---------------------------------------------------------------------------------
             // TODO: block gameplay logic goes here. This currently only drives the animation.
             //
             // DONE elsewhere: MeleeCombatController and RollController both check IsBlocking and
             // refuse to start an attack/roll while blocking is held (see their Try*() methods).
+            // Blocking itself is now refused/dropped while Health.IsHitStunned or IsDead.
             // Movement is untouched by blocking, so moving while blocking already works.
             //
             // Still not implemented:
@@ -81,8 +89,8 @@ namespace StarterAssets.Combat
             //   - Guard break: what happens if stamina hits zero while blocking — forced
             //     unblock, stagger, vulnerability window, etc.
             //   - Directional blocking, if attacks from behind shouldn't be blockable.
-            //   - The reverse direction isn't handled either: currently attacking/rolling doesn't
-            //     forcibly drop an active block — decide if that should interrupt it.
+            //   - Attacking/rolling still doesn't forcibly drop an active block — decide if
+            //     that should interrupt it too (hitstun/death now does, via the check above).
             // ---------------------------------------------------------------------------------
 
             SetBlocking(wantsToBlock);
