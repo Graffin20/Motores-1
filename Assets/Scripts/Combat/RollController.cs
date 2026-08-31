@@ -7,7 +7,9 @@ namespace StarterAssets.Combat
     /// Entity-agnostic roll/dodge. Works for player or AI via IMeleeCombatInputSource, same
     /// pattern as MeleeCombatController. Moves the character using CharacterController.Move
     /// (this project uses CharacterController, not Rigidbody, so no physics forces are involved)
-    /// covering RollDistance over RollDuration in the direction the character is currently facing.
+    /// covering RollDistance over RollDuration in the direction the player's input indicates
+    /// (camera-relative, same convention as ThirdPersonController.Move() — see TryStartRoll()),
+    /// with the character smoothly rotating to face that direction as the roll plays out.
     ///
     /// Costs stamina via StaminaSystem if one is present on this GameObject (optional — rolling
     /// is unrestricted if no StaminaSystem is attached).
@@ -45,12 +47,13 @@ namespace StarterAssets.Combat
         private Animator _animator;
         private bool _hasAnimator;
         private int _rollTriggerHash;
+        private GameObject _mainCamera;
 
         private bool _isRolling;
         private float _rollTimer;
         private Vector3 _rollDirection;
         private bool _isInvulnerable;
-        private Quaternion _targetRotation; // Add this to track target rotation
+        private Quaternion _targetRotation; // target rotation to smoothly turn towards during the roll
 
         /// <summary>True while the roll is in progress — read this from ThirdPersonController.Move()
         /// (alongside MeleeCombatController.IsAttacking) to suppress normal locomotion during the roll,
@@ -73,11 +76,22 @@ namespace StarterAssets.Combat
             _rollTriggerHash = Animator.StringToHash(RollAnimationTrigger);
             _input = GetComponent<StarterAssetsInputs>();
 
+            // Needed to interpret _input.move relative to the camera rather than the character's
+            // own transform — see TryStartRoll() for why that distinction matters.
+            _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
+
             if (_inputSource == null)
             {
                 Debug.LogWarning($"{nameof(RollController)} on '{name}' found no " +
                                   $"{nameof(IMeleeCombatInputSource)} implementation. Add " +
                                   $"{nameof(PlayerMeleeCombatInput)} or {nameof(AIMeleeCombatInput)}.", this);
+            }
+
+            if (_mainCamera == null)
+            {
+                Debug.LogWarning($"{nameof(RollController)} on '{name}' couldn't find a GameObject tagged " +
+                                  "'MainCamera' — camera-relative roll direction will fall back to the " +
+                                  "character's current facing instead.", this);
             }
         }
 
@@ -111,23 +125,30 @@ namespace StarterAssets.Combat
 
             _isRolling = true;
             _rollTimer = MaxRollSafetyDuration;
-            if (_input.move != Vector2.zero)
+
+            if (_input != null && _input.move != Vector2.zero && _mainCamera != null)
             {
-                // Get the player's facing direction in world space
-                Vector3 forward = transform.forward;
-                Vector3 right = transform.right;
-                
-                // Combine input using the player's orientation, not global axes
-                Vector3 moveDir = new Vector3(_input.move.x, 0f, _input.move.y).normalized;
-                _rollDirection = (forward * moveDir.z + right * moveDir.x).normalized;
-                _targetRotation = Quaternion.LookRotation(_rollDirection);
+                // Interpret input relative to the CAMERA — same math as ThirdPersonController.Move()
+                // uses for its own _targetRotation. Using transform.forward/right (the character's
+                // own current facing) here instead would anchor the roll direction to whatever way
+                // the character happened to already be facing, independent of where the camera is
+                // looking — which is exactly what caused rolls to feel like they ignored facing and
+                // used fixed axes.
+                Vector3 inputDirection = new Vector3(_input.move.x, 0f, _input.move.y).normalized;
+                float targetAngle = Mathf.Atan2(inputDirection.x, inputDirection.z) * Mathf.Rad2Deg
+                                     + _mainCamera.transform.eulerAngles.y;
+
+                _targetRotation = Quaternion.Euler(0f, targetAngle, 0f);
+                _rollDirection = _targetRotation * Vector3.forward;
             }
             else
             {
-                // no input? roll straight forward relative to the character's current facing
+                // No input (or no camera reference found) — roll straight forward relative to the
+                // character's current facing.
                 _rollDirection = transform.forward;
                 _targetRotation = transform.rotation;
             }
+
             _isInvulnerable = false;
 
             if (_hasAnimator) _animator.SetTrigger(_rollTriggerHash);
@@ -177,4 +198,4 @@ namespace StarterAssets.Combat
             _isInvulnerable = false;
         }
     }
-}   
+}

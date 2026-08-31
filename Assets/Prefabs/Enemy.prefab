@@ -2432,8 +2432,8 @@ MonoBehaviour:
   HeavyAttackStaminaCost: 10
   HeavyKnockbackDistanceMultiplier: 2
   HeavyKnockbackDurationMultiplier: 1
-  HitboxOffset: {x: 0, y: 1, z: 1}
-  HitboxRadius: 0.75
+  HitboxOffset: {x: 0, y: 1, z: 0.7}
+  HitboxRadius: 0.5
   HittableLayers:
     serializedVersion: 2
     m_Bits: 64
