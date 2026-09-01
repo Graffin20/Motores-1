@@ -15,6 +15,10 @@ namespace StarterAssets.Combat
         public string AnimationTrigger = "Attack1";
         public float Damage = 10f;
         public float StaminaCost = 8f;
+        [Tooltip("Multiplies the defender's own KnockbackDistance (see Health) — 1 = defender's default.")]
+        public float KnockbackDistanceMultiplier = 1f;
+        [Tooltip("Multiplies the defender's own KnockbackDuration (see Health) — 1 = defender's default. Independent from the distance multiplier.")]
+        public float KnockbackDurationMultiplier = 1f;
     }
 
     /// <summary>
@@ -69,6 +73,10 @@ namespace StarterAssets.Combat
         public string HeavyAnimationTrigger = "HeavyAttack";
         public float HeavyAttackDamage = 22f;
         public float HeavyAttackStaminaCost = 15f;
+        [Tooltip("Multiplies the defender's own KnockbackDistance (see Health) — 1 = defender's default.")]
+        public float HeavyKnockbackDistanceMultiplier = 1.5f;
+        [Tooltip("Multiplies the defender's own KnockbackDuration (see Health) — 1 = defender's default. Independent from the distance multiplier.")]
+        public float HeavyKnockbackDurationMultiplier = 1.5f;
 
         [Header("Hit Detection")]
         [Tooltip("Local offset from this transform for the hitbox sphere, e.g. out in front of the character.")]
@@ -323,12 +331,48 @@ namespace StarterAssets.Combat
             // Deliberately no ComboCooldownDuration here — bailing into a roll is a defensive
             // choice mid-attack, not a completed combo. Revisit if this turns out to be
             // exploitable as a way to skip the cooldown by always canceling the 3rd hit.
+            ResetAttackState();
+            return true;
+        }
+
+        /// <summary>
+        /// Immediately aborts whatever attack is in progress — called by Health when the character
+        /// takes damage, so a swing doesn't visually continue while staggering (or dying). Unlike
+        /// RequestCancelForRoll(), this doesn't check CanCancelIntoRoll: getting hit isn't a choice
+        /// the player is making, so it interrupts regardless of any designer-placed cancel window.
+        /// </summary>
+        public void ForceCancelAttack()
+        {
+            if (_phase == AttackPhase.Idle) return;
+
+            ResetAttackState();
+
+            // Unlike the roll-cancel, a forced interruption DOES apply the combo cooldown — being
+            // hit breaks the combo rhythm regardless of which hit you were on, so the moment
+            // hitstun ends shouldn't let you resume mid-combo instantly.
+            _comboLockoutTimer = ComboCooldownDuration;
+
+            // Defensively clear any combo/heavy trigger that may have been set but not yet
+            // consumed by its transition — otherwise it can sit armed on the Animator and fire
+            // as a phantom attack later, once the Hit/Die state exits back to combat idle. Same
+            // class of bug as the stray-buffered-state issue we fixed on the combo state machine.
+            if (_hasAnimator)
+            {
+                foreach (var hash in _comboTriggerHashes) _animator.ResetTrigger(hash);
+                _animator.ResetTrigger(_heavyTriggerHash);
+            }
+        }
+
+        /// <summary>Shared reset used by both RequestCancelForRoll() and ForceCancelAttack() —
+        /// wipes all in-progress-attack state back to Idle. Callers are responsible for deciding
+        /// whether ComboCooldownDuration applies afterward.</summary>
+        private void ResetAttackState()
+        {
             EnterPhase(AttackPhase.Idle);
             _isHeavyAttack = false;
             _comboIndex = -1;
             _bufferedAttack = false;
             _canCancelIntoRoll = false;
-            return true;
         }
 
         /// <summary>Place at the very end of the clip — the attack is fully finished and the next action is allowed.</summary>
@@ -375,6 +419,8 @@ namespace StarterAssets.Combat
             Collider[] hits = Physics.OverlapSphere(origin, HitboxRadius, HittableLayers);
 
             float damage = _isHeavyAttack ? HeavyAttackDamage : ComboStages[_comboIndex].Damage;
+            float knockbackDistanceMultiplier = _isHeavyAttack ? HeavyKnockbackDistanceMultiplier : ComboStages[_comboIndex].KnockbackDistanceMultiplier;
+            float knockbackDurationMultiplier = _isHeavyAttack ? HeavyKnockbackDurationMultiplier : ComboStages[_comboIndex].KnockbackDurationMultiplier;
 
             foreach (var hit in hits)
             {
@@ -382,10 +428,12 @@ namespace StarterAssets.Combat
 
                 if (hit.TryGetComponent<IDamageable>(out var damageable))
                 {
-                    damageable.TakeDamage(damage);
+                    damageable.TakeDamage(damage, transform.position, knockbackDistanceMultiplier, knockbackDurationMultiplier);
                 }
-                
-                Debug.Log($"{name} hit {hit.name} for {damage} damage.");
+                else
+                {
+                    Debug.Log($"{name} hit {hit.name} for {damage} damage, but it has no IDamageable component.");
+                }
             }
 
             _hasDamagedThisSwing = true;

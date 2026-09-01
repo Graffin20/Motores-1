@@ -91,6 +91,8 @@ namespace StarterAssets
         private float _verticalVelocity;
         private float _terminalVelocity = 53.0f;
 
+        private Health _health;
+
         // timeout deltatime
         private float _jumpTimeoutDelta;
         private float _fallTimeoutDelta;
@@ -104,6 +106,7 @@ namespace StarterAssets
 
         // combat
         private MeleeCombatController _combat;
+        private RollController _roll;
 
 #if ENABLE_INPUT_SYSTEM 
         private PlayerInput _playerInput;
@@ -137,6 +140,8 @@ namespace StarterAssets
             {
                 _mainCamera = GameObject.FindGameObjectWithTag("MainCamera");
             }
+
+            _health = GetComponent<Health>();
         }
 
         private void Start()
@@ -148,10 +153,15 @@ namespace StarterAssets
             _input = GetComponent<StarterAssetsInputs>();
 #if ENABLE_INPUT_SYSTEM 
             _playerInput = GetComponent<PlayerInput>();
-            _combat = GetComponent<MeleeCombatController>();
 #else
 			Debug.LogError( "Starter Assets package is missing dependencies. Please use Tools/Starter Assets/Reinstall Dependencies to fix it");
 #endif
+
+            // Moved out of the ENABLE_INPUT_SYSTEM block above — these need to be assigned
+            // regardless of which input backend is active, otherwise combat/roll gating in
+            // Move()/JumpAndGravity() silently no-ops whenever the new Input System isn't enabled.
+            _combat = GetComponent<MeleeCombatController>();
+            _roll = GetComponent<RollController>();
 
             AssignAnimationIDs();
 
@@ -181,6 +191,20 @@ namespace StarterAssets
             _animIDJump = Animator.StringToHash("Jump");
             _animIDFreeFall = Animator.StringToHash("FreeFall");
             _animIDMotionSpeed = Animator.StringToHash("MotionSpeed");
+        }
+
+        /// <summary>
+        /// Single source of truth for "should normal locomotion/jump input be ignored right now."
+        /// Centralized here so the next combat state that needs to suppress movement (a parry, a
+        /// guard-break stagger, etc.) is a one-line addition to this method rather than another
+        /// scattered check in Move() and JumpAndGravity() individually.
+        /// </summary>
+        private bool ShouldLockMovement()
+        {
+            if (_health != null && (_health.IsHitStunned || _health.IsDead)) return true;
+            if (_combat != null && _combat.IsAttacking) return true;
+            if (_roll != null && _roll.IsRolling) return true;
+            return false;
         }
 
         private void GroundedCheck()
@@ -221,9 +245,11 @@ namespace StarterAssets
 
         private void Move()
         {
-            if (_combat != null && _combat.IsAttacking)
+            if (ShouldLockMovement())
             {
-                // still apply gravity so they don't float, but skip rotation/speed changes
+                // Still apply gravity so the character doesn't float, but skip rotation/speed
+                // changes entirely — whichever system is actually in control right now (RollController
+                // during a roll, or nothing at all if stunned/dead) owns movement, not player input.
                 _controller.Move(new Vector3(0f, _verticalVelocity, 0f) * Time.deltaTime);
                 return;
             }
@@ -314,8 +340,11 @@ namespace StarterAssets
                     _verticalVelocity = -2f;
                 }
 
-                // Jump
-                if (_input.jump && _jumpTimeoutDelta <= 0.0f)
+                // Jump — gated on ShouldLockMovement() too, so you can't jump-cancel out of an
+                // attack, a roll, or hitstun by pressing jump. Gravity/fall timeout logic below
+                // still runs unconditionally either way, so falling still behaves correctly even
+                // while one of those states is active.
+                if (_input.jump && _jumpTimeoutDelta <= 0.0f && !ShouldLockMovement())
                 {
                     // the square root of H * -2 * G = how much velocity needed to reach desired height
                     _verticalVelocity = Mathf.Sqrt(JumpHeight * -2f * Gravity);
