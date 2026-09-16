@@ -768,9 +768,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8ae93aad8f9254a488685f2847696752, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.RollController
-  RollDistance: 2
+  RollDistance: 3
   RollDuration: 0.5
-  RotationSpeed: 10
+  RotationSpeed: 11
   RollStaminaCost: 35
   RollAnimationTrigger: Roll
   MaxRollSafetyDuration: 1.5
