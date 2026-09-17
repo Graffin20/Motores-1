@@ -37,4 +37,24 @@ public class FrogDialogue : MonoBehaviour, IInteractable
 
        }
     }
+
+    public void OnFocus()
+    {
+
+    }
+
+    public void OnUnfocus()
+    {
+        
+    }
+
+    public void OnAvailable()
+    {
+        
+    }
+
+    public void OnUnavailable()
+    {
+       
+    }
 }
