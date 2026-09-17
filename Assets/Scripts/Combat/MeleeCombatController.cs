@@ -19,6 +19,8 @@ namespace StarterAssets.Combat
         public float KnockbackDistanceMultiplier = 1f;
         [Tooltip("Multiplies the defender's own KnockbackDuration (see Health) — 1 = defender's default. Independent from the distance multiplier.")]
         public float KnockbackDurationMultiplier = 1f;
+        [Tooltip("Distance to push the character forward during this attack stage.")]
+        public float ForwardPushDistance = 1f;
     }
 
     /// <summary>
@@ -77,6 +79,8 @@ namespace StarterAssets.Combat
         public float HeavyKnockbackDistanceMultiplier = 1.5f;
         [Tooltip("Multiplies the defender's own KnockbackDuration (see Health) — 1 = defender's default. Independent from the distance multiplier.")]
         public float HeavyKnockbackDurationMultiplier = 1.5f;
+        [Tooltip("Distance to push the character forward during the heavy attack.")]
+        public float HeavyForwardPushDistance = 2f;
 
         [Header("Hit Detection")]
         [Tooltip("Local offset from this transform for the hitbox sphere, e.g. out in front of the character.")]
@@ -84,15 +88,26 @@ namespace StarterAssets.Combat
         public float HitboxRadius = 0.75f;
         public LayerMask HittableLayers;
 
-        [Header("Dev Safety Net")]
-        [Tooltip("If a clip is missing an animation event, the state machine would otherwise get stuck forever in that phase. This force-advances (and logs a warning) if a phase runs too long without its event firing. Not a real timing source — just prevents soft-locks while you're wiring up events.")]
-        public bool EnablePhaseSafetyTimeout = true;
-        public float PhaseSafetyTimeoutSeconds = 2f;
+        [Header("Attack Movement")]
+        [Tooltip("Duration (in seconds) over which the forward push is applied.")]
+        public float AttackPushDuration = 0.3f;
 
         // -- runtime state --
         private AttackPhase _phase = AttackPhase.Idle;
         private float _phaseElapsed;
         private float _comboLockoutTimer;
+        private float _currentForwardPush;
+        private float _currentPushDuration;
+        private float _forwardPushElapsed;
+
+        public Transform lookAtReference;
+
+        private CharacterController _characterController;
+
+        [Header("Dev Safety Net")]
+        [Tooltip("If a clip is missing an animation event, the state machine would otherwise get stuck forever in that phase. This force-advances (and logs a warning) if a phase runs too long without its event firing. Not a real timing source — just prevents soft-locks while you're wiring up events.")]
+        public bool EnablePhaseSafetyTimeout = true;
+        public float PhaseSafetyTimeoutSeconds = 2f;
 
         // -1 = not currently in a light combo stage (either idle, or currently doing a heavy attack)
         private int _comboIndex = -1;
@@ -141,6 +156,7 @@ namespace StarterAssets.Combat
             _hasAnimator = TryGetComponent(out _animator);
             _stamina = GetComponent<StaminaSystem>(); // optional — null means attacks are unrestricted by stamina
             _block = GetComponent<BlockController>(); // optional — null means blocking never prevents attacks
+            _characterController = GetComponent<CharacterController>();
 
             _comboTriggerHashes = ComboStages.Select(s => Animator.StringToHash(s.AnimationTrigger)).ToArray();
             _heavyTriggerHash = Animator.StringToHash(HeavyAnimationTrigger);
@@ -149,6 +165,7 @@ namespace StarterAssets.Combat
         private void Update()
         {
             if (_inputSource == null) return;
+            if (GameManager.Instance.levelComplete) return;
 
             switch (_phase)
             {
@@ -163,6 +180,7 @@ namespace StarterAssets.Combat
                     // gets a chance to read it.
                     if (!_bufferedAttack) TryBufferNextAttack();
                     TickSafetyTimeout();
+                    ApplyForwardPush();
                     break;
             }
         }
@@ -259,8 +277,10 @@ namespace StarterAssets.Combat
             _isHeavyAttack = false;
             _comboIndex = stageIndex;
             _hasDamagedThisSwing = false;
-            _bufferedAttack = false; // never start an attack carrying leftover buffer state
-            _canCancelIntoRoll = false; // each attack opens its own window fresh, via its own AE_RollCancelOpen
+            _bufferedAttack = false;
+            _canCancelIntoRoll = false;
+            _currentPushDuration = ComboStages[stageIndex].ForwardPushDistance;
+            FaceTarget();
             EnterPhase(AttackPhase.Windup);
 
             if (_hasAnimator) _animator.SetTrigger(_comboTriggerHashes[stageIndex]);
@@ -270,11 +290,56 @@ namespace StarterAssets.Combat
         {
             _isHeavyAttack = true;
             _hasDamagedThisSwing = false;
-            _bufferedAttack = false; // never start an attack carrying leftover buffer state
+            _bufferedAttack = false;
             _canCancelIntoRoll = false;
+            _currentPushDuration = HeavyForwardPushDistance;
+            FaceTarget();
             EnterPhase(AttackPhase.Windup);
 
             if (_hasAnimator) _animator.SetTrigger(_heavyTriggerHash);
+        }
+
+        private void FaceTarget()
+        {
+            if (lookAtReference == null) return;
+
+            Vector3 directionToTarget = (lookAtReference.position - transform.position);
+            directionToTarget.y = 0f; // Only rotate around Y axis
+            directionToTarget.Normalize();
+
+            if (directionToTarget.sqrMagnitude < 0.001f) return; // Avoid degenerate case
+
+            Quaternion targetRotation = Quaternion.LookRotation(directionToTarget, Vector3.up);
+            transform.rotation = targetRotation;
+        }
+
+        private void StartForwardPush(float distance, float duration)
+        {
+            _currentForwardPush = distance;
+            _forwardPushElapsed = 0f;
+            AttackPushDuration = duration;
+        }
+
+        private void ApplyForwardPush()
+        {
+            if (_characterController == null || _currentForwardPush <= 0f) return;
+            if (_forwardPushElapsed >= _currentPushDuration)
+            {
+                _currentForwardPush = 0f;
+                return;
+            }
+
+            _forwardPushElapsed += Time.deltaTime;
+            float distanceThisFrame = (_currentForwardPush / _currentPushDuration) * Time.deltaTime;
+
+            // Move in the direction the character is facing
+            Vector3 movement = transform.forward * distanceThisFrame;
+            _characterController.Move(movement);
+
+            if (_forwardPushElapsed >= _currentPushDuration)
+            {
+                _currentForwardPush = 0f;
+            }
         }
 
         private void EnterPhase(AttackPhase phase)
@@ -290,6 +355,14 @@ namespace StarterAssets.Combat
         {
             if (_phase != AttackPhase.Windup) return;
             EnterPhase(AttackPhase.Active);
+        }
+
+        /// <summary>Place on the clip at the moment the character should begin moving forward during the attack.
+        /// Pass the distance as a parameter from the animation event. Uses the push duration set during attack startup.</summary>
+        public void AE_BeginForwardPush(float distance)
+        {
+            _currentForwardPush = distance;
+            _forwardPushElapsed = 0f;
         }
 
         /// <summary>Place on the clip at the moment the hitbox should turn off / recovery begins.</summary>
