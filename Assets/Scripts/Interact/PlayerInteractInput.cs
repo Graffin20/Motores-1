@@ -51,15 +51,19 @@ public class PlayerInteractInput : MonoBehaviour
     private void Update()
     {
 #if !ENABLE_INPUT_SYSTEM
-        // Fallback for old input manager, matching the convention in PlayerMeleeCombatInput.
-        if (Input.GetKeyDown(KeyCode.E)) _interactRequested = true;
+    if (Input.GetKeyDown(KeyCode.E)) _interactRequested = true;
 #endif
 
         if (!_interactRequested) return;
         _interactRequested = false;
 
-        if (ShouldBlockInteraction()) return;
+        if (ShouldBlockInteraction())
+        {
+            Debug.Log("Interact blocked by ShouldBlockInteraction()"); // temporary
+            return;
+        }
 
+        Debug.Log("Calling InteractComponent.Interact()"); // temporary
         _interactComponent.Interact();
     }
 

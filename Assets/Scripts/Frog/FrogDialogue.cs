@@ -20,6 +20,7 @@ public class FrogDialogue : MonoBehaviour, IInteractable
 
             currentDialogue = dialog;
             currentDialogue.SetDialogueText("Mr. Frog",message);
+            Debug.Log("Started interacting with the frog.");
         }
         else
         {
@@ -34,8 +35,9 @@ public class FrogDialogue : MonoBehaviour, IInteractable
 
             Destroy(currentDialogue.gameObject);
             currentDialogue=null;
+            Debug.Log("Stopped interacting with the frog.");
 
-       }
+        }
     }
 
     public void OnFocus()
