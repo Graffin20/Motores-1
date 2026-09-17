@@ -782,27 +782,33 @@ MonoBehaviour:
     StaminaCost: 10
     KnockbackDistanceMultiplier: 1
     KnockbackDurationMultiplier: 1
+    ForwardPushDistance: 1
   - AnimationTrigger: Attack2
     Damage: 10
     StaminaCost: 10
     KnockbackDistanceMultiplier: 1.2
     KnockbackDurationMultiplier: 1
+    ForwardPushDistance: 1
   - AnimationTrigger: Attack3
     Damage: 10
     StaminaCost: 10
     KnockbackDistanceMultiplier: 1
     KnockbackDurationMultiplier: 1.5
+    ForwardPushDistance: 1
   ComboCooldownDuration: 0.25
   HeavyAnimationTrigger: HeavyAttack
   HeavyAttackDamage: 22
   HeavyAttackStaminaCost: 20
   HeavyKnockbackDistanceMultiplier: 2
   HeavyKnockbackDurationMultiplier: 1.5
+  HeavyForwardPushDistance: 2
   HitboxOffset: {x: 0, y: 1, z: 1.09}
   HitboxRadius: 0.8
   HittableLayers:
     serializedVersion: 2
     m_Bits: 128
+  AttackPushDuration: 0.3
+  lookAtReference: {fileID: 0}
   EnablePhaseSafetyTimeout: 1
   PhaseSafetyTimeoutSeconds: 2
 --- !u!114 &4945440481910958876
@@ -1020,10 +1026,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractComponent
   InteractRange: 6
+  CapsuleRadius: 0.5
+  CapsuleHeight: 1
   InteractableLayerMask:
     serializedVersion: 2
-    m_Bits: 256
-  RaycastTriggerInteraction: 2
+    m_Bits: 0
+  CastTriggerInteraction: 2
   interactionCameraOverride: {fileID: 0}
   rayOrigin: {fileID: 0}
 --- !u!114 &4878718914043635429
@@ -1170,10 +1178,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractComponent
   InteractRange: 3
+  CapsuleRadius: 0.5
+  CapsuleHeight: 1
   InteractableLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  RaycastTriggerInteraction: 2
+  CastTriggerInteraction: 2
   interactionCameraOverride: {fileID: 0}
   rayOrigin: {fileID: 0}
 --- !u!1 &2137549950214189832

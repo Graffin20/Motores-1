@@ -21,5 +21,6 @@ public class NextLevelTrigger : MonoBehaviour
     private void NextLevel()
     {
         victoryScreen.SetActive(true);
+        GameManager.Instance.levelComplete = true;
     }
 }

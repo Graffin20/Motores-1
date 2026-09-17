@@ -3,16 +3,20 @@ using UnityEngine;
 
 public class InteractComponent : MonoBehaviour
 {
-    [Header("Raycast Detection")]
-    [Tooltip("Max distance for the camera-forward raycast used to detect interactable objects.")]
+    [Header("Capsule Detection")]
+    [Tooltip("Max distance for the capsule cast used to detect interactable objects.")]
     public float InteractRange = 3f;
-    [Tooltip("Layers the raycast checks against.")]
+    [Tooltip("Radius of the capsule cast.")]
+    public float CapsuleRadius = 0.5f;
+    [Tooltip("Height of the capsule cast.")]
+    public float CapsuleHeight = 1f;
+    [Tooltip("Layers the capsule cast checks against.")]
     public LayerMask InteractableLayerMask = ~0;
-    [Tooltip("Whether the raycast should hit trigger colliders.")]
-    public QueryTriggerInteraction RaycastTriggerInteraction = QueryTriggerInteraction.Collide;
-    [Tooltip("The gameplay camera to raycast from.")]
+    [Tooltip("Whether the cast should hit trigger colliders.")]
+    public QueryTriggerInteraction CastTriggerInteraction = QueryTriggerInteraction.Collide;
+    [Tooltip("The gameplay camera to cast from.")]
     [SerializeField] private Camera interactionCameraOverride;
-    [Tooltip("Where the raycast starts from — recommended to be near eye height.")]
+    [Tooltip("Where the cast starts from — recommended to be near eye height.")]
     [SerializeField] private Transform rayOrigin;
 
     private Camera interactionCamera;
@@ -52,11 +56,11 @@ public class InteractComponent : MonoBehaviour
             interactingInteractable = null;
         }
 
-        // Try raycast first for precise detection
-        IInteractable rayHit = RaycastForInteractable();
-        if (rayHit != null)
+        // Try capsule cast first for broader detection
+        IInteractable castHit = CapsuleCastForInteractable();
+        if (castHit != null)
         {
-            SetCurrentInteractable(rayHit);
+            SetCurrentInteractable(castHit);
         }
         else
         {
@@ -65,14 +69,18 @@ public class InteractComponent : MonoBehaviour
         }
     }
 
-    private IInteractable RaycastForInteractable()
+    private IInteractable CapsuleCastForInteractable()
     {
         if (interactionCamera == null) return null;
 
         Vector3 origin = RayOrigin.position;
         Vector3 direction = interactionCamera.transform.forward;
+        
+        // Calculate capsule endpoints
+        Vector3 point1 = origin;
+        Vector3 point2 = origin + interactionCamera.transform.up * (CapsuleHeight - CapsuleRadius * 2f);
 
-        if (Physics.Raycast(origin, direction, out RaycastHit hit, InteractRange, InteractableLayerMask, RaycastTriggerInteraction))
+        if (Physics.CapsuleCast(point1, point2, CapsuleRadius, direction, out RaycastHit hit, InteractRange, InteractableLayerMask, CastTriggerInteraction))
         {
             if (hit.collider.TryGetComponent<IInteractable>(out var interactable))
             {
@@ -109,10 +117,10 @@ public class InteractComponent : MonoBehaviour
         // Refresh detection in case we're being called before Update() has run this frame
         if (currentInteractable == null)
         {
-            IInteractable rayHit = RaycastForInteractable();
-            if (rayHit != null)
+            IInteractable castHit = CapsuleCastForInteractable();
+            if (castHit != null)
             {
-                SetCurrentInteractable(rayHit);
+                SetCurrentInteractable(castHit);
             }
             else
             {
@@ -179,8 +187,22 @@ public class InteractComponent : MonoBehaviour
         Vector3 direction = cam.transform.forward;
         Vector3 endPos = startPos + direction * InteractRange;
 
+        // Draw capsule cast visualization
+        Vector3 point1 = startPos;
+        Vector3 point2 = startPos + cam.transform.up * (CapsuleHeight - CapsuleRadius * 2f);
+
         Gizmos.color = Color.green;
+        // Draw capsule at start
+        DrawCapsuleGizmo(point1, point2, CapsuleRadius);
+        // Draw capsule at end
+        DrawCapsuleGizmo(point1 + direction * InteractRange, point2 + direction * InteractRange, CapsuleRadius);
+        // Draw direction line
         Gizmos.DrawLine(startPos, endPos);
-        Gizmos.DrawWireSphere(endPos, 0.1f);
+    }
+
+    private void DrawCapsuleGizmo(Vector3 point1, Vector3 point2, float radius)
+    {
+        Gizmos.DrawWireSphere(point1, radius);
+        Gizmos.DrawWireSphere(point2, radius);
     }
 }

@@ -20,8 +20,20 @@ namespace StarterAssets
 		public bool cursorLocked = true;
 		public bool cursorInputForLook = true;
 
+        private void Update()
+        {
+            if(GameManager.Instance.levelComplete)
+            {
+                // Disable input when the level is complete
+                move = Vector2.zero;
+                look = Vector2.zero;
+                jump = false;
+                sprint = false;
+            }
+        }
+
 #if ENABLE_INPUT_SYSTEM
-		public void OnMove(InputValue value)
+        public void OnMove(InputValue value)
 		{
 			MoveInput(value.Get<Vector2>());
 		}
