@@ -15,18 +15,14 @@ public class Pickup : MonoBehaviour, IInteractable
     [Tooltip("Display name shown in UI prompts, e.g. \"Rusty Key\" or \"Health Potion\".")]
     public string ItemName = "Item";
 
-    [Tooltip("Optional visual toggled on focus — an outline, a floating prompt icon, etc.")]
-    public GameObject FocusVisual;
-
     public void OnStartInteract()
     {
         // TODO: hook this up to your actual inventory system, e.g.:
         // InventoryManager.Instance.AddItem(ItemName);
         Debug.Log($"Picked up: {ItemName}");
 
-        if (FocusVisual != null) FocusVisual.SetActive(false);
-
         InventoryManager.Instance.SetPickedUpObject(true);
+        UIManager.Instance.ToggleFocusTextPanel(false);
         Destroy(gameObject);
     }
 
@@ -40,13 +36,13 @@ public class Pickup : MonoBehaviour, IInteractable
     public void OnFocus()
     {
         Debug.Log("Pickup.OnFocus firing"); // temporary
-        if (FocusVisual != null) FocusVisual.SetActive(true);
+        UIManager.Instance.UpdatePanelText($"F - Pick up {ItemName}", UIManager.Instance.focusTextPanel);
+        UIManager.Instance.ToggleFocusTextPanel(true);
     }
 
     public void OnUnfocus()
     {
-        if (FocusVisual != null) FocusVisual.SetActive(false);
-        // TODO: hide the UI prompt here.
+        UIManager.Instance.ToggleFocusTextPanel(false);
     }
 
     public void OnAvailable()
