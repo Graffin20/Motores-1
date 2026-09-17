@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+<<<<<<< Updated upstream
     <list default="true" id="ec678141-1290-4124-8ad6-ba12313f21ab" name="Changes" comment="" />
+=======
+    <list default="true" id="ec678141-1290-4124-8ad6-ba12313f21ab" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/ProjectSettings/Packages/com.unity.probuilder/Settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/Packages/com.unity.probuilder/Settings.json" afterDir="false" />
+    </list>
+>>>>>>> Stashed changes
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -108,6 +114,13 @@
       <updated>1788031403598</updated>
       <workItem from="1788031404379" duration="2845000" />
       <workItem from="1788106401931" duration="3216000" />
+<<<<<<< Updated upstream
+=======
+      <workItem from="1788117121676" duration="14000" />
+      <workItem from="1788117388152" duration="29000" />
+      <workItem from="1788117470136" duration="17000" />
+      <workItem from="1789658635290" duration="11000" />
+>>>>>>> Stashed changes
     </task>
     <servers />
   </component>
