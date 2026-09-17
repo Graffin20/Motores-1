@@ -86,15 +86,16 @@ namespace StarterAssets.Combat
 
         private void Update()
         {
-#if ENABLE_INPUT_SYSTEM
+            if (GameManager.Instance.levelComplete)
+            {
+                // Disable input when the level is complete
+                AttackRequested = false;
+                HeavyAttackRequested = false;
+                RollRequested = false;
+                BlockHeld = false;
+                return;
+            }
             if (_blockAction != null) BlockHeld = _blockAction.IsPressed();
-#else
-            // Fallback for old input manager / manual polling, if you're not using the new Input System.
-            if (Input.GetButtonDown("Fire1")) AttackRequested = true;
-            if (Input.GetButtonDown("Fire2")) HeavyAttackRequested = true;
-            if (Input.GetKeyDown(KeyCode.LeftShift)) RollRequested = true;
-            BlockHeld = Input.GetMouseButton(1);
-#endif
         }
 
         // Runs after every script's Update this frame. Whatever pulse is left unconsumed by then

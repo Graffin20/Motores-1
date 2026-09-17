@@ -204,6 +204,7 @@ namespace StarterAssets
             if (_health != null && (_health.IsHitStunned || _health.IsDead)) return true;
             if (_combat != null && _combat.IsAttacking) return true;
             if (_roll != null && _roll.IsRolling) return true;
+            if (GameManager.Instance.levelComplete) return true;
             return false;
         }
 
