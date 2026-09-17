@@ -26,13 +26,7 @@ public class Pickup : MonoBehaviour, IInteractable
 
         if (FocusVisual != null) FocusVisual.SetActive(false);
 
-        // NOTE: Destroy() is deferred to the end of the frame, so InteractComponent's own state
-        // this frame (currentInteractable/interactingInteractable) still safely references this
-        // object until then. If a collider on this object also sits inside a player-side
-        // interaction trigger volume, its OnTriggerExit fires as part of destruction and cleans
-        // that list up normally. If you'd rather pool/reuse pickups instead of destroying them,
-        // replace this with gameObject.SetActive(false) — just make sure whatever spawns pickups
-        // doesn't also try to reference a destroyed instance afterward.
+        InventoryManager.Instance.SetPickedUpObject(true);
         Destroy(gameObject);
     }
 
