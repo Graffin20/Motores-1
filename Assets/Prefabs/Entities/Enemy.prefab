@@ -2287,6 +2287,8 @@ GameObject:
   - component: {fileID: 8694750667537420342}
   - component: {fileID: 7226366377185473479}
   - component: {fileID: 123831642033018763}
+  - component: {fileID: 5096197736139240735}
+  - component: {fileID: 8817475122262554341}
   m_Layer: 7
   m_Name: Enemy
   m_TagString: Untagged
@@ -2303,7 +2305,7 @@ Transform:
   m_GameObject: {fileID: 8776521118454666863}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: -0.027786322, y: 0.07000005, z: 14.974377}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2426,17 +2428,22 @@ MonoBehaviour:
     StaminaCost: 10
     KnockbackDistanceMultiplier: 2
     KnockbackDurationMultiplier: 1
+    ForwardPushDistance: 1
   ComboCooldownDuration: 0.35
   HeavyAnimationTrigger: HeavyAttack
   HeavyAttackDamage: 10
   HeavyAttackStaminaCost: 10
   HeavyKnockbackDistanceMultiplier: 2
   HeavyKnockbackDurationMultiplier: 1
+  HeavyForwardPushDistance: 2
   HitboxOffset: {x: 0, y: 1, z: 0.7}
   HitboxRadius: 0.5
   HittableLayers:
     serializedVersion: 2
     m_Bits: 64
+  AttackPushDuration: 0.3
+  _lockOnController: {fileID: 0}
+  lookAtReference: {fileID: 0}
   EnablePhaseSafetyTimeout: 1
   PhaseSafetyTimeoutSeconds: 2
 --- !u!114 &7226366377185473479
@@ -2477,3 +2484,38 @@ MonoBehaviour:
   DestroyDelayAfterDeath: 5
   KnockbackDistance: 1
   KnockbackDuration: 0.2
+--- !u!114 &5096197736139240735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8776521118454666863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfdd6fb4e65f70e47b5392f4999c41d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DamageableLockTarget
+--- !u!136 &8817475122262554341
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8776521118454666863}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.217287
+  m_Height: 1.8122388
+  m_Direction: 1
+  m_Center: {x: 0, y: 0.90409034, z: 0.012604564}
