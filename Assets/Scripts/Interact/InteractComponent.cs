@@ -23,6 +23,7 @@ public class InteractComponent : MonoBehaviour
     private IInteractable currentInteractable;
     private IInteractable interactingInteractable;
     private readonly List<IInteractable> proximityInteractables = new();
+    private IInteractable previousCastInteractable;
 
     private void Awake()
     {
@@ -56,8 +57,31 @@ public class InteractComponent : MonoBehaviour
             interactingInteractable = null;
         }
 
+        // Check if previousCastInteractable was destroyed
+        if (previousCastInteractable != null && (previousCastInteractable as Component) == null)
+        {
+            previousCastInteractable = null;
+        }
+
         // Try capsule cast first for broader detection
         IInteractable castHit = CapsuleCastForInteractable();
+        
+        // Handle focus/unfocus for raycast detection
+        if (castHit != previousCastInteractable)
+        {
+            if (previousCastInteractable != null && previousCastInteractable is Pickup previousPickup)
+            {
+                previousPickup.OnUnfocus();
+            }
+
+            if (castHit != null && castHit is Pickup newPickup)
+            {
+                newPickup.OnFocus();
+            }
+
+            previousCastInteractable = castHit;
+        }
+
         if (castHit != null)
         {
             SetCurrentInteractable(castHit);
@@ -151,6 +175,9 @@ public class InteractComponent : MonoBehaviour
             if (!proximityInteractables.Contains(interactable))
             {
                 proximityInteractables.Add(interactable);
+                
+                // Call OnAvailable for trigger interactables
+                interactable.OnAvailable();
             }
         }
     }
@@ -160,6 +187,9 @@ public class InteractComponent : MonoBehaviour
         if (other.TryGetComponent<IInteractable>(out var interactable))
         {
             proximityInteractables.Remove(interactable);
+            
+            // Call OnUnavailable for trigger interactables
+            interactable.OnUnavailable();
 
             // If the interactable we lost is the current one, clear it
             if (currentInteractable == interactable)

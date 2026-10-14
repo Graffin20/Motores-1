@@ -47,16 +47,17 @@ public class FrogDialogue : MonoBehaviour, IInteractable
 
     public void OnUnfocus()
     {
-        
+
     }
 
     public void OnAvailable()
     {
-        
+        UIManager.Instance.UpdatePanelText("F - Talk", UIManager.Instance.focusTextPanel);
+        UIManager.Instance.ToggleFocusTextPanel(true);
     }
 
     public void OnUnavailable()
     {
-       
+        UIManager.Instance.ToggleFocusTextPanel(false);
     }
 }
