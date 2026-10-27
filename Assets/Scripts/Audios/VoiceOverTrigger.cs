@@ -10,13 +10,15 @@ public class VoiceOverTrigger : MonoBehaviour
 
     private bool hasPlayed = false;
 
-    private void OnCollisionEnter(Collision collision)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!collision.gameObject.CompareTag(playerTag)) return;
+
+
+        if (!other.CompareTag(playerTag)) return;
         if (playOnlyOnce && hasPlayed) return;
-      
+
         if (audioSource == null)
-            audioSource = collision.gameObject.GetComponentInChildren<AudioSource>();
+            audioSource = other.GetComponentInChildren<AudioSource>();
 
         if (audioSource == null)
         {

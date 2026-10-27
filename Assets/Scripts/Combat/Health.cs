@@ -9,14 +9,20 @@ namespace StarterAssets.Combat
         public float CurrentHealth { get; set; }
 
         [Header("Hit Reaction")]
+
+
         [Tooltip("Animator trigger fired when damage is taken (and the hit doesn't kill).")]
         public string HitAnimationTrigger = "Hit";
         [Tooltip("Safety fallback: if AE_HitReactionEnd() never fires on the Hit clip, the stun ends automatically after this long instead of getting stuck forever.")]
         public float HitStunSafetyDuration = 1f;
 
         [Header("Death")]
+
         public string DieAnimationTrigger = "Die";
         public float DestroyDelayAfterDeath = 5f;
+        [Tooltip("Activalo solo en enemigos: al morir suma una kill al KillCounter.")]
+        public bool CountsAsKill = false;
+
 
         [Header("Knockback")]
         [Tooltip("Horizontal distance covered by the knockback push.")]
@@ -178,10 +184,14 @@ namespace StarterAssets.Combat
 
         private void Die()
         {
-            IsDead = true;
+
             _isHitStunned = false;
             Debug.Log($"{gameObject.name} died!");
 
+            if (CountsAsKill && KillCounter.Instance != null)
+                KillCounter.Instance.AddKill();
+
+            _meleeCombat?.ForceCancelAttack();
             _meleeCombat?.ForceCancelAttack();
 
             if (_hasAnimator) _animator.SetTrigger(_dieTriggerHash);
