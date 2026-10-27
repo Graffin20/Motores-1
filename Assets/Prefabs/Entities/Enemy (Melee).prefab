@@ -2289,8 +2289,9 @@ GameObject:
   - component: {fileID: 123831642033018763}
   - component: {fileID: 5096197736139240735}
   - component: {fileID: 8817475122262554341}
+  - component: {fileID: -1081752956679078879}
   m_Layer: 7
-  m_Name: Enemy
+  m_Name: Enemy (Melee)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2386,7 +2387,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.5
-  m_Speed: 5.5
+  m_Speed: 4
   m_Acceleration: 16
   avoidancePriority: 50
   m_AngularSpeed: 120
@@ -2459,9 +2460,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.EnemyAI
   DetectionRadius: 10
-  AttackRange: 1.75
-  TimeBetweenAttacks: 1.2
-  HeavyAttackChance: 0.25
+  Route: {fileID: 0}
+  PatrolSpeedMultiplier: 0.5
+  WaypointReachedDistance: 0.5
+  ResumeAtNearestWaypoint: 1
   PlayerLayer:
     serializedVersion: 2
     m_Bits: 64
@@ -2519,3 +2521,18 @@ CapsuleCollider:
   m_Height: 1.8122388
   m_Direction: 1
   m_Center: {x: 0, y: 0.90409034, z: 0.012604564}
+--- !u!114 &-1081752956679078879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8776521118454666863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 985c45f9a5d304b4390ba3508965540d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.MeleeAttackBehavior
+  AttackRange: 1.75
+  TimeBetweenAttacks: 1.2
+  HeavyAttackChance: 0.25
