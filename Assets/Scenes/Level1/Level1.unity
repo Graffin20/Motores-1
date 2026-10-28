@@ -4519,6 +4519,11 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
+--- !u!1 &328955309 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8276123879072929757, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
+  m_PrefabInstance: {fileID: 3071715046501894297}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &330311666
 Mesh:
   m_ObjectHideFlags: 0
@@ -192802,6 +192807,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7810060905152804435, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
+      propertyPath: LockCameraPosition
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8915790542344396560, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
       propertyPath: m_Name
       value: PlayerCameraPrefabNested
@@ -192809,7 +192818,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8276123879072929757, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8447611358422471078}
+    - targetCorrespondingSourceObject: {fileID: 8276123879072929757, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8447611358422471079}
   m_SourcePrefab: {fileID: 100100000, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
 --- !u!1001 &3083153954590058625
 PrefabInstance:
@@ -530299,7 +530314,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8447611356831829906, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
   m_PrefabInstance: {fileID: 3071715046501894297}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 328955309}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9d0d6b5158102c24fa7b94864ead60fc, type: 3}
@@ -530310,12 +530325,47 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8641968551928479305, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
   m_PrefabInstance: {fileID: 3071715046501894297}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 328955309}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: df46f4d120051a44b95d5bb92c012a23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.Health
+--- !u!114 &8447611358422471078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 328955309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f628310eec5c3f143b94ca90030d12ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.LockOnController
+  maxLockRange: 15
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  maxLockAngle: 75
+  lockOnUIPrefab: {fileID: 0}
+--- !u!114 &8447611358422471079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 328955309}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a531a828654b554d9615a8806ec34a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.PlayerLockOnBridge
+  cameraRoot: {fileID: 0}
+  rotationSpeed: 15
 --- !u!4 &8479472411922707221
 Transform:
   m_ObjectHideFlags: 0

@@ -91,6 +91,10 @@ namespace StarterAssets.Combat
         [Header("Attack Movement")]
         [Tooltip("Duration (in seconds) over which the forward push is applied.")]
         public float AttackPushDuration = 0.3f;
+        
+        [Header("Lock-On")]
+        [Tooltip("Optional reference to the LockOnController. If assigned and locked on, attacks will automatically target this.")]
+        [SerializeField] private LockOnController _lockOnController;
 
         // -- runtime state --
         private AttackPhase _phase = AttackPhase.Idle;
@@ -301,9 +305,13 @@ namespace StarterAssets.Combat
 
         private void FaceTarget()
         {
-            if (lookAtReference == null) return;
+            var targetTransform = (_lockOnController != null && _lockOnController.IsLockedOn) 
+                ? _lockOnController.CurrentTargetTransform 
+                : lookAtReference;
 
-            Vector3 directionToTarget = (lookAtReference.position - transform.position);
+            if (targetTransform == null) return;
+
+            Vector3 directionToTarget = (targetTransform.position - transform.position);
             directionToTarget.y = 0f; // Only rotate around Y axis
             directionToTarget.Normalize();
 

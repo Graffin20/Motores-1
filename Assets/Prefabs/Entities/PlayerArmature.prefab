@@ -615,6 +615,8 @@ GameObject:
   - component: {fileID: 2077667725611620151}
   - component: {fileID: 4947015282939713132}
   - component: {fileID: 4878718914043635429}
+  - component: {fileID: 4398591316269036959}
+  - component: {fileID: 135456670912654769}
   m_Layer: 6
   m_Name: PlayerArmature
   m_TagString: Player
@@ -763,7 +765,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf31b88efc8ab2147b80cc667102fced, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.PlayerMeleeCombatInput
-  BlockActionName: Block
+  blockActionName: Block
+  targetSwitchThreshold: 0.5
 --- !u!114 &2019123850298571995
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -808,6 +811,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 128
   AttackPushDuration: 0.3
+  _lockOnController: {fileID: 0}
   lookAtReference: {fileID: 0}
   EnablePhaseSafetyTimeout: 1
   PhaseSafetyTimeoutSeconds: 2
@@ -1046,6 +1050,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90434475e2c67a94281e7895a94052fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerInteractInput
+--- !u!114 &4398591316269036959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1864940512970145443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f628310eec5c3f143b94ca90030d12ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.LockOnController
+  maxLockRange: 15
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 1
+  maxLockAngle: 75
+  lockOnUIPrefab: {fileID: 0}
+--- !u!114 &135456670912654769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1864940512970145443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a531a828654b554d9615a8806ec34a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.PlayerLockOnBridge
 --- !u!1 &1890053522361954898
 GameObject:
   m_ObjectHideFlags: 0
