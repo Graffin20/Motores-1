@@ -2441,9 +2441,12 @@ MonoBehaviour:
   HittableLayers:
     serializedVersion: 2
     m_Bits: 64
+  ParriedAnimationTrigger: Parried
+  ParriedStaggerSafetyDuration: 1.5
   AttackPushDuration: 0.3
-  _lockOnController: {fileID: 0}
   lookAtReference: {fileID: 0}
+  TrackTargetDuringWindup: 1
+  WindupTrackingTurnSpeed: 540
   EnablePhaseSafetyTimeout: 1
   PhaseSafetyTimeoutSeconds: 2
 --- !u!114 &7226366377185473479
