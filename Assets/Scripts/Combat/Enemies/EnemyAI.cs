@@ -37,6 +37,12 @@ namespace StarterAssets.Combat
         private NavMeshAgent _agent;
         private EnemyAttackBehavior _attack;
         private Animator _animator;
+        private Health _health;
+
+        // Player-side combat registry (drives the combat camera). Null-safe: no tracker on the player
+        // just means engagement isn't reported.
+        private CombatStateTracker _playerCombatState;
+        private bool _isEngaged;
 
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
@@ -57,6 +63,7 @@ namespace StarterAssets.Combat
         {
             _agent = GetComponent<NavMeshAgent>();
             TryGetComponent(out _animator);
+            _health = GetComponent<Health>(); // optional — null means no stagger/death gating
 
             _attack = GetComponent<EnemyAttackBehavior>();
 
@@ -94,27 +101,57 @@ namespace StarterAssets.Combat
             }
         }
 
+        private void OnDisable()
+        {
+            // Covers being disabled and Destroy (which also calls OnDisable).
+            SetEngaged(false);
+        }
+
         private void Update()
         {
+            // Before the agent guard: Health disables the agent on death, and the guard below would then
+            // return forever without this enemy ever unregistering from the player's combat state.
+            if (_health != null && _health.IsDead)
+            {
+                SetEngaged(false);
+                return;
+            }
+
             // Guard: Do not run AI logic if agent isn't anchored on a baked NavMesh
             if (!_agent.isOnNavMesh || !_agent.isActiveAndEnabled) return;
+
+            // Health drives knockback through the CharacterController during hitstun (and during a
+            // stun-free push, e.g. a parry shockwave or a blocked hit); steering the agent at the same
+            // time would give the transform two movers fighting each other. Engagement is left as is,
+            // so hitting an enemy doesn't briefly drop the player out of combat.
+            if (_health != null && (_health.IsHitStunned || _health.IsBeingKnockedBack))
+            {
+                SafeStopAgent();
+                UpdateAnimationSpeed(0f);
+                return;
+            }
 
             LocatePlayer();
 
             // If no valid target is found, stand still (or patrol if a route is set)
             if (_playerTransform == null)
             {
+                SetEngaged(false);
                 IdleOrPatrol();
                 return;
             }
 
             float distanceToPlayer = Vector3.Distance(transform.position, _playerTransform.position);
 
-            // Lock movement and smoothly turn toward player while mid-attack
+            // Engaged = chasing (inside DetectionRadius) or mid-attack.
+            SetEngaged(_attack.IsAttacking || distanceToPlayer <= DetectionRadius);
+
+            // Lock movement while mid-attack. Turn toward the player only if the attack doesn't own facing
+            // itself (melee does: MeleeCombatController, so swings commit after AE_AttackActive).
             if (_attack.IsAttacking)
             {
                 SafeStopAgent();
-                FaceTarget(_playerTransform.position);
+                if (!_attack.ControlsFacingWhileAttacking) FaceTarget(_playerTransform.position);
                 UpdateAnimationSpeed(0f);
                 return;
             }
@@ -270,6 +307,16 @@ namespace StarterAssets.Combat
 
         // ---------------------------------------------------------------- Helpers
 
+        private void SetEngaged(bool engaged)
+        {
+            if (engaged == _isEngaged) return;
+            _isEngaged = engaged;
+
+            if (_playerCombatState == null) return;
+            if (engaged) _playerCombatState.RegisterEngagedEnemy(this);
+            else _playerCombatState.UnregisterEngagedEnemy(this);
+        }
+
         private void LocatePlayer()
         {
             // 1. Try finding by Player tag first
@@ -279,6 +326,7 @@ namespace StarterAssets.Combat
                 if (playerObj != null)
                 {
                     _playerTransform = playerObj.transform;
+                    _playerCombatState = playerObj.GetComponentInParent<CombatStateTracker>();
                     return;
                 }
             }
@@ -292,6 +340,7 @@ namespace StarterAssets.Combat
                     if (hit.transform.root == transform.root) continue; // Ignore own hierarchy
 
                     _playerTransform = hit.transform;
+                    _playerCombatState = hit.GetComponentInParent<CombatStateTracker>();
                     break;
                 }
             }

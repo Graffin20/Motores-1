@@ -20,6 +20,10 @@ namespace StarterAssets.Combat
 
         public override bool IsAttacking => _combatController != null && _combatController.IsAttacking;
 
+        // MeleeCombatController faces the target via lookAtReference; a swing must stay committed after
+        // AE_AttackActive so it can be sidestepped.
+        public override bool ControlsFacingWhileAttacking => true;
+
         private void Awake()
         {
             _aiInput = GetComponent<AIMeleeCombatInput>();
@@ -28,6 +32,10 @@ namespace StarterAssets.Combat
 
         protected override void Execute(Transform target)
         {
+            // Single target-facing path: MeleeCombatController snaps to this at attack start and, with
+            // TrackTargetDuringWindup, keeps turning toward it until the swing commits.
+            _combatController.lookAtReference = target;
+
             if (Random.value < HeavyAttackChance)
             {
                 _aiInput.RequestHeavyAttack();

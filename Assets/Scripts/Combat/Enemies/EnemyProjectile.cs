@@ -101,7 +101,7 @@ namespace StarterAssets.Combat
         {
             if (hit.TryGetComponent<IDamageable>(out var damageable))
             {
-                damageable.TakeDamage(Damage, transform.position);
+                damageable.TakeDamage(new HitInfo(Damage, transform.position));
             }        
         }
     }

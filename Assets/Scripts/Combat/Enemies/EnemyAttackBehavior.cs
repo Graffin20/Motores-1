@@ -25,6 +25,13 @@ namespace StarterAssets.Combat
         public bool IsOnCooldown => _cooldownTimer > 0f;
 
         /// <summary>
+        /// True if the attack itself rotates the enemy while IsAttacking, so EnemyAI must not also turn it
+        /// (two systems writing the same rotation fight each other). Melee: MeleeCombatController owns facing
+        /// (snap at attack start + optional TrackTargetDuringWindup until AE_AttackActive, then committed).
+        /// </summary>
+        public virtual bool ControlsFacingWhileAttacking => false;
+
+        /// <summary>
         /// Condiciones de posición para poder atacar (ej: línea de visión). No incluye el cooldown.
         /// Si devuelve false estando en rango, el enemigo sigue acercándose.
         /// </summary>

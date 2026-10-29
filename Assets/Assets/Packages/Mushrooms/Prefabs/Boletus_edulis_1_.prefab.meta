@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cd5b616e0bf7c364ba30aaa596cde736
+timeCreated: 1436613549
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 39867
+  packageName: Mushrooms
+  packageVersion: 1.0
+  assetPath: Assets/Mushrooms/Prefabs/Boletus_edulis_1_.prefab
+  uploadId: 932026
