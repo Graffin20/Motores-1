@@ -39,13 +39,19 @@ namespace StarterAssets.Combat
     /// Optionally, wherever the attack should be cancelable into a roll (see RollController):
     ///   - AE_RollCancelOpen()  opens the cancel window
     ///   - AE_RollCancelClose() closes it early (otherwise it auto-closes at AE_AttackEnd)
+    /// Optionally, wherever a defender's block PRESS should count as a parry (see BlockController):
+    ///   - AE_ParryWindowOpen()  opens the parry window (usually shortly before the hit frame)
+    ///   - AE_ParryWindowClose() closes it (if missing, it's treated as closing at the hit)
+    ///   An attack whose clip never opens the window can be blocked but not parried.
     ///
     /// Combo rules:
-    /// - Light attacks chain 1 -> 2 -> 3. After 3, the combo ends and ComboCooldownDuration
-    ///   (a design value, not an animation timing) applies before another combo can start.
-    /// - Heavy attack can be used standalone from Idle, OR as a finisher queued during the
-    ///   Recovery of combo stage 1 or 2 (0-indexed: stage 0 or 1) — never after stage 3.
+    /// - Light attacks chain through ComboStages in order (any length). After the last stage, the
+    ///   combo ends and ComboCooldownDuration (a design value, not an animation timing) applies
+    ///   before another combo can start.
+    /// - Heavy attack can be used standalone from Idle, OR as a finisher queued after any
+    ///   non-final light stage — never after the last one.
     /// - Any heavy attack (standalone or finisher) ends the chain and triggers the cooldown.
+    /// - Being parried staggers this character (Health.Stagger), which cancels the attack.
     ///
     /// Intended to sit alongside ThirdPersonController: expose IsAttacking so Move() can gate
     /// rotation/locomotion during an attack.
@@ -88,13 +94,24 @@ namespace StarterAssets.Combat
         public float HitboxRadius = 0.75f;
         public LayerMask HittableLayers;
 
+        [Header("Being Parried")]
+        [Tooltip("Animator trigger for the stagger played when one of this character's attacks is parried. Falls back to Health's Hit trigger if this parameter doesn't exist.")]
+        public string ParriedAnimationTrigger = "Parried";
+        [Tooltip("Dev safety fallback only: the stagger normally ends via AE_StaggerEnd on the Parried clip.")]
+        public float ParriedStaggerSafetyDuration = 1.5f;
+
         [Header("Attack Movement")]
         [Tooltip("Duration (in seconds) over which the forward push is applied.")]
         public float AttackPushDuration = 0.3f;
-        
-        [Header("Lock-On")]
-        [Tooltip("Optional reference to the LockOnController. If assigned and locked on, attacks will automatically target this.")]
-        [SerializeField] private LockOnController _lockOnController;
+
+        [Header("Target Facing")]
+        [Tooltip("Fallback for FaceTarget: if the input source gives no aim direction (TryGetAttackDirection), the character snaps to face this at the start of each attack. EnemyAI sets it to the player. LockBridge also sets it while locked on, but the player's camera direction takes priority.")]
+        public Transform lookAtReference;
+
+        [Tooltip("Keep turning toward lookAtReference during Windup, until AE_AttackActive commits the swing. Makes attacks harder to dodge early, but the swing itself never follows the target. Meant for enemies; leave off for the player (its aim comes from the camera at attack start).")]
+        public bool TrackTargetDuringWindup = false;
+        [Tooltip("Max turn rate (degrees/second) while tracking during Windup. Lower = a fast sidestep during the windup can still outpace the turn.")]
+        public float WindupTrackingTurnSpeed = 540f;
 
         // -- runtime state --
         private AttackPhase _phase = AttackPhase.Idle;
@@ -103,8 +120,7 @@ namespace StarterAssets.Combat
         private float _currentForwardPush;
         private float _currentPushDuration;
         private float _forwardPushElapsed;
-
-        public Transform lookAtReference;
+        private float _pendingPushDistance; // this attack's data-driven push distance, used when the animation event doesn't pass one
 
         private CharacterController _characterController;
 
@@ -127,9 +143,20 @@ namespace StarterAssets.Combat
         // RequestCancelForRoll() know the current attack may be aborted into a roll.
         private bool _canCancelIntoRoll;
 
+        // Parry window of the CURRENT attack, opened/closed by AE_ParryWindowOpen/Close. Times are
+        // sent with each hit so the defender can check whether its block press fell inside.
+        private bool _parryWindowOpen;
+        private bool _parryWindowOpenedThisAttack;
+        private float _parryWindowOpenTime;
+        private float _parryWindowCloseTime;
+
+        // Reused per swing so one target with several colliders in the hitbox is only hit once.
+        private readonly System.Collections.Generic.HashSet<IDamageable> _damagedThisSwing = new();
+
         private IMeleeCombatInputSource _inputSource;
         private StaminaSystem _stamina;
         private BlockController _block;
+        private Health _health;
         private Animator _animator;
         private bool _hasAnimator;
 
@@ -146,6 +173,10 @@ namespace StarterAssets.Combat
         /// (opened via AE_RollCancelOpen on the clip).</summary>
         public bool CanCancelIntoRoll => _canCancelIntoRoll;
 
+        /// <summary>True while the current attack's parry window is open. Not used by the parry check
+        /// itself (that uses the times sent in HitInfo); exposed so an AI can decide when to parry.</summary>
+        public bool IsParryWindowOpen => _parryWindowOpen;
+
         private void Awake()
         {
             _inputSource = GetComponents<MonoBehaviour>().OfType<IMeleeCombatInputSource>().FirstOrDefault();
@@ -160,6 +191,7 @@ namespace StarterAssets.Combat
             _hasAnimator = TryGetComponent(out _animator);
             _stamina = GetComponent<StaminaSystem>(); // optional — null means attacks are unrestricted by stamina
             _block = GetComponent<BlockController>(); // optional — null means blocking never prevents attacks
+            _health = GetComponent<Health>();          // optional — null means no hitstun/death gating
             _characterController = GetComponent<CharacterController>();
 
             _comboTriggerHashes = ComboStages.Select(s => Animator.StringToHash(s.AnimationTrigger)).ToArray();
@@ -169,7 +201,7 @@ namespace StarterAssets.Combat
         private void Update()
         {
             if (_inputSource == null) return;
-            if (GameManager.Instance.levelComplete) return;
+            if (GameManager.Instance != null && GameManager.Instance.levelComplete) return;
 
             switch (_phase)
             {
@@ -184,6 +216,7 @@ namespace StarterAssets.Combat
                     // gets a chance to read it.
                     if (!_bufferedAttack) TryBufferNextAttack();
                     TickSafetyTimeout();
+                    TrackTargetDuringWindupPhase();
                     ApplyForwardPush();
                     break;
             }
@@ -221,9 +254,14 @@ namespace StarterAssets.Combat
             }
         }
 
+        /// <summary>Hitstun can outlast ComboCooldownDuration (which ForceCancelAttack applies), so the
+        /// cooldown alone doesn't stop a fresh press from starting a swing mid-stagger.</summary>
+        private bool IsIncapacitated => _health != null && (_health.IsHitStunned || _health.IsDead);
+
         private void TryStartAttackFromIdle()
         {
-            if (_block != null && _block.IsBlocking) return;
+            if (_block != null && (_block.IsBlocking || _block.IsParrying)) return; // parrying: the Parry clip owns the Animator until AE_ParryEnd
+            if (IsIncapacitated) return;
 
             if (_inputSource.HeavyAttackRequested)
             {
@@ -283,7 +321,9 @@ namespace StarterAssets.Combat
             _hasDamagedThisSwing = false;
             _bufferedAttack = false;
             _canCancelIntoRoll = false;
-            _currentPushDuration = ComboStages[stageIndex].ForwardPushDistance;
+            ResetParryWindow();
+            ClearForwardPush();
+            _pendingPushDistance = ComboStages[stageIndex].ForwardPushDistance;
             FaceTarget();
             EnterPhase(AttackPhase.Windup);
 
@@ -296,58 +336,81 @@ namespace StarterAssets.Combat
             _hasDamagedThisSwing = false;
             _bufferedAttack = false;
             _canCancelIntoRoll = false;
-            _currentPushDuration = HeavyForwardPushDistance;
+            ResetParryWindow();
+            ClearForwardPush();
+            _pendingPushDistance = HeavyForwardPushDistance;
             FaceTarget();
             EnterPhase(AttackPhase.Windup);
 
             if (_hasAnimator) _animator.SetTrigger(_heavyTriggerHash);
         }
 
+        /// <summary>Snaps facing at the start of each attack/combo stage. The input source's aim direction
+        /// wins (player: camera look, also while locked on); lookAtReference is the fallback (AI). Neither
+        /// available = keep the current facing.</summary>
         private void FaceTarget()
         {
-            var targetTransform = (_lockOnController != null && _lockOnController.IsLockedOn) 
-                ? _lockOnController.CurrentTargetTransform 
-                : lookAtReference;
+            Vector3 direction;
+            if (_inputSource != null && _inputSource.TryGetAttackDirection(out direction))
+            {
+                // use the requested aim direction
+            }
+            else if (lookAtReference != null)
+            {
+                direction = lookAtReference.position - transform.position;
+            }
+            else
+            {
+                return;
+            }
 
-            if (targetTransform == null) return;
+            direction.y = 0f; // Only rotate around Y axis
+            if (direction.sqrMagnitude < 0.001f) return; // Avoid degenerate case (e.g. camera looking straight down)
 
-            Vector3 directionToTarget = (targetTransform.position - transform.position);
-            directionToTarget.y = 0f; // Only rotate around Y axis
-            directionToTarget.Normalize();
-
-            if (directionToTarget.sqrMagnitude < 0.001f) return; // Avoid degenerate case
-
-            Quaternion targetRotation = Quaternion.LookRotation(directionToTarget, Vector3.up);
-            transform.rotation = targetRotation;
+            transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
         }
 
-        private void StartForwardPush(float distance, float duration)
+        /// <summary>Turns toward lookAtReference only while in Windup. Animation events run after Update,
+        /// so tracking stops on exactly the frame AE_AttackActive moves the phase to Active.</summary>
+        private void TrackTargetDuringWindupPhase()
         {
-            _currentForwardPush = distance;
-            _forwardPushElapsed = 0f;
-            AttackPushDuration = duration;
+            if (!TrackTargetDuringWindup || _phase != AttackPhase.Windup || lookAtReference == null) return;
+
+            Vector3 direction = lookAtReference.position - transform.position;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.001f) return;
+
+            Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation,
+                                                          WindupTrackingTurnSpeed * Time.deltaTime);
         }
 
         private void ApplyForwardPush()
         {
-            if (_characterController == null || _currentForwardPush <= 0f) return;
-            if (_forwardPushElapsed >= _currentPushDuration)
+            if (_characterController == null || _currentForwardPush <= 0f || _currentPushDuration <= 0f) return;
+
+            // Clamp the final step so the total distance covered is exactly the requested distance.
+            float step = Mathf.Min(Time.deltaTime, _currentPushDuration - _forwardPushElapsed);
+            if (step <= 0f)
             {
-                _currentForwardPush = 0f;
+                ClearForwardPush();
                 return;
             }
 
-            _forwardPushElapsed += Time.deltaTime;
-            float distanceThisFrame = (_currentForwardPush / _currentPushDuration) * Time.deltaTime;
+            _forwardPushElapsed += step;
 
             // Move in the direction the character is facing
-            Vector3 movement = transform.forward * distanceThisFrame;
-            _characterController.Move(movement);
+            _characterController.Move(transform.forward * (_currentForwardPush / _currentPushDuration * step));
 
-            if (_forwardPushElapsed >= _currentPushDuration)
-            {
-                _currentForwardPush = 0f;
-            }
+            if (_forwardPushElapsed >= _currentPushDuration) ClearForwardPush();
+        }
+
+        /// <summary>Stops any in-progress lunge. Called whenever an attack starts, ends, or is cancelled so a
+        /// half-finished push can never leak into the next attack as a phantom lunge.</summary>
+        private void ClearForwardPush()
+        {
+            _currentForwardPush = 0f;
+            _forwardPushElapsed = 0f;
         }
 
         private void EnterPhase(AttackPhase phase)
@@ -365,11 +428,16 @@ namespace StarterAssets.Combat
             EnterPhase(AttackPhase.Active);
         }
 
-        /// <summary>Place on the clip at the moment the character should begin moving forward during the attack.
-        /// Pass the distance as a parameter from the animation event. Uses the push duration set during attack startup.</summary>
+        /// <summary>Place on the clip at the moment the character should begin lunging forward. The float
+        /// parameter is an optional distance override: leave it at 0 to use this attack's ForwardPushDistance
+        /// (per-stage / heavy data), or pass a value to override it for this clip. The push always lasts
+        /// AttackPushDuration.</summary>
         public void AE_BeginForwardPush(float distance)
         {
-            _currentForwardPush = distance;
+            if (_phase == AttackPhase.Idle) return; // stray event after a cancel — nothing to lunge for
+
+            _currentForwardPush = distance > 0f ? distance : _pendingPushDistance;
+            _currentPushDuration = AttackPushDuration;
             _forwardPushElapsed = 0f;
         }
 
@@ -397,6 +465,32 @@ namespace StarterAssets.Combat
         public void AE_RollCancelClose()
         {
             _canCancelIntoRoll = false;
+        }
+
+        /// <summary>Place on the clip where a defender's block press starts counting as a parry —
+        /// usually a little before the hit frame, so the tell is readable.</summary>
+        public void AE_ParryWindowOpen()
+        {
+            if (_phase == AttackPhase.Idle) return; // stray event after a cancel
+            _parryWindowOpen = true;
+            _parryWindowOpenedThisAttack = true;
+            _parryWindowOpenTime = Time.time;
+            _parryWindowCloseTime = float.PositiveInfinity; // still open — clamped to the hit time in ApplyHitboxDamage
+        }
+
+        /// <summary>Place where the parry window ends. Optional: if the hit lands while the window is
+        /// still open, presses up to the hit itself count.</summary>
+        public void AE_ParryWindowClose()
+        {
+            if (!_parryWindowOpen) return;
+            _parryWindowOpen = false;
+            _parryWindowCloseTime = Time.time;
+        }
+
+        private void ResetParryWindow()
+        {
+            _parryWindowOpen = false;
+            _parryWindowOpenedThisAttack = false;
         }
 
         /// <summary>
@@ -454,6 +548,8 @@ namespace StarterAssets.Combat
             _comboIndex = -1;
             _bufferedAttack = false;
             _canCancelIntoRoll = false;
+            ResetParryWindow();
+            ClearForwardPush();
         }
 
         /// <summary>Place at the very end of the clip — the attack is fully finished and the next action is allowed.</summary>
@@ -466,6 +562,8 @@ namespace StarterAssets.Combat
             _isHeavyAttack = false;
             _comboIndex = -1;
             _canCancelIntoRoll = false;
+            ResetParryWindow();
+            ClearForwardPush();
 
             if (comboEnded)
             {
@@ -503,13 +601,27 @@ namespace StarterAssets.Combat
             float knockbackDistanceMultiplier = _isHeavyAttack ? HeavyKnockbackDistanceMultiplier : ComboStages[_comboIndex].KnockbackDistanceMultiplier;
             float knockbackDurationMultiplier = _isHeavyAttack ? HeavyKnockbackDurationMultiplier : ComboStages[_comboIndex].KnockbackDurationMultiplier;
 
+            var hitInfo = new HitInfo(damage, transform.position, knockbackDistanceMultiplier, knockbackDurationMultiplier)
+            {
+                Attacker = transform.root.gameObject,
+                IsParryable = _parryWindowOpenedThisAttack,
+                ParryWindowOpenTime = _parryWindowOpenTime,
+                // A window still open at the hit counts presses up to this moment.
+                ParryWindowCloseTime = Mathf.Min(_parryWindowCloseTime, Time.time),
+            };
+
+            bool wasParried = false;
+            _damagedThisSwing.Clear();
+
             foreach (var hit in hits)
             {
                 if (hit.transform.root == transform.root) continue; // don't hit self
 
                 if (hit.TryGetComponent<IDamageable>(out var damageable))
                 {
-                    damageable.TakeDamage(damage, transform.position, knockbackDistanceMultiplier, knockbackDurationMultiplier);
+                    if (!_damagedThisSwing.Add(damageable)) continue; // same target, another collider
+
+                    if (damageable.TakeDamage(hitInfo) == HitResult.Parried) wasParried = true;
                 }
                 else
                 {
@@ -518,6 +630,18 @@ namespace StarterAssets.Combat
             }
 
             _hasDamagedThisSwing = true;
+
+            // After the loop, not inside it: the stagger cancels this attack (ForceCancelAttack), and
+            // every target caught by this same swing should still be resolved with its data.
+            if (wasParried) OnParried();
+        }
+
+        /// <summary>One of this character's attacks was parried — stagger (which also cancels the attack
+        /// and applies the combo cooldown). Without a Health there's no stagger state, so just cancel.</summary>
+        private void OnParried()
+        {
+            if (_health != null) _health.Stagger(ParriedStaggerSafetyDuration, ParriedAnimationTrigger);
+            else ForceCancelAttack();
         }
 
         private void OnDrawGizmosSelected()

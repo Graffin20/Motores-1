@@ -26,6 +26,24 @@ namespace StarterAssets.Combat
         public bool LockOnRequested { get; private set; }
         public Vector2 TargetSwitchDirection { get; private set; }
 
+        // Camera source for attack aiming. ThirdPersonController owns the camera reference; read it
+        // lazily (not cached in Awake) since ThirdPersonController resolves it in its own Awake.
+        private ThirdPersonController _thirdPersonController;
+
+        /// <summary>Player attacks go where the camera looks, in free cam and lock-on alike.</summary>
+        public bool TryGetAttackDirection(out Vector3 direction)
+        {
+            Transform cameraTransform = _thirdPersonController != null ? _thirdPersonController.CameraTransform : null;
+            if (cameraTransform == null)
+            {
+                direction = default;
+                return false;
+            }
+
+            direction = cameraTransform.forward;
+            return true;
+        }
+
         public void ConsumeAttackRequest() => AttackRequested = false;
         public void ConsumeHeavyAttackRequest() => HeavyAttackRequested = false;
         public void ConsumeRollRequest() => RollRequested = false;
@@ -38,6 +56,7 @@ namespace StarterAssets.Combat
         private void Awake()
         {
             _playerInput = GetComponent<PlayerInput>();
+            _thirdPersonController = GetComponent<ThirdPersonController>(); // optional — null means no camera aiming
 
             if (_playerInput != null && _playerInput.actions != null)
             {
@@ -71,12 +90,12 @@ namespace StarterAssets.Combat
         {
             BlockHeld = value.isPressed;
         }
-        
+
         public void OnLockOn(InputValue value)
         {
             if (value.isPressed) LockOnRequested = true;
         }
-        
+
         public void OnSwitchTarget(InputValue value)
         {
             var input = value.Get<Vector2>();
@@ -101,7 +120,9 @@ namespace StarterAssets.Combat
                 return;
             }
 
+#if ENABLE_INPUT_SYSTEM
             if (_blockAction != null) BlockHeld = _blockAction.IsPressed();
+#endif
         }
 
         private void LateUpdate()

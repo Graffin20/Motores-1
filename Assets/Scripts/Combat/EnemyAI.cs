@@ -31,9 +31,16 @@ namespace StarterAssets.Combat
         private NavMeshAgent _agent;
         private AIMeleeCombatInput _aiInput;
         private MeleeCombatController _combatController;
+        private Health _health;
         private Animator _animator;
 
         private float _attackCooldownTimer;
+        private bool _wasAttacking;
+
+        // Player-side combat registry (drives the combat camera). Null-safe: no tracker on the player
+        // just means engagement isn't reported.
+        private CombatStateTracker _playerCombatState;
+        private bool _isEngaged;
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
 
@@ -42,6 +49,7 @@ namespace StarterAssets.Combat
             _agent = GetComponent<NavMeshAgent>();
             _aiInput = GetComponent<AIMeleeCombatInput>();
             _combatController = GetComponent<MeleeCombatController>();
+            _health = GetComponent<Health>(); // optional — null means no hitstun gating
             TryGetComponent(out _animator);
         }
 
@@ -54,20 +62,49 @@ namespace StarterAssets.Combat
             }
         }
 
+        private void OnDisable()
+        {
+            // Covers death-adjacent disables and Destroy (which also calls OnDisable).
+            SetEngaged(false);
+        }
+
         private void Update()
         {
+            // Before the agent guard: Health disables the agent on death, and the guard below would then
+            // return forever without this enemy ever unregistering from the player's combat state.
+            if (_health != null && _health.IsDead)
+            {
+                SetEngaged(false);
+                return;
+            }
+
             // Guard: Do not run AI logic if agent isn't anchored on a baked NavMesh
             if (!_agent.isOnNavMesh || !_agent.isActiveAndEnabled) return;
+
+            // Health drives knockback through the CharacterController during hitstun (and during a
+            // stun-free push, e.g. a parry shockwave or a blocked hit); steering the agent at the same
+            // time would give the transform two movers fighting each other.
+            if (_health != null && (_health.IsHitStunned || _health.IsDead || _health.IsBeingKnockedBack))
+            {
+                SafeStopAgent();
+                UpdateAnimationSpeed(0f);
+                return;
+            }
 
             LocatePlayer();
 
             // If no valid target is found, stand completely still
             if (_playerTransform == null)
             {
+                SetEngaged(false);
                 SafeStopAgent();
                 UpdateAnimationSpeed(0f);
                 return;
             }
+
+            // Facing during a swing goes through MeleeCombatController's single target-facing path
+            // (a snap at attack start), so the swing commits to a direction and can be dodged.
+            _combatController.lookAtReference = _playerTransform;
 
             float distanceToPlayer = Vector3.Distance(transform.position, _playerTransform.position);
 
@@ -77,11 +114,22 @@ namespace StarterAssets.Combat
                 _attackCooldownTimer -= Time.deltaTime;
             }
 
-            // Lock movement and smoothly turn toward player while mid-swing
-            if (_combatController.IsAttacking)
+            // Start the cooldown when an attack actually begins, not when it's requested — a refused
+            // request (combo cooldown, low stamina) simply expires and is retried next frame.
+            bool isAttacking = _combatController.IsAttacking;
+            if (isAttacking && !_wasAttacking) _attackCooldownTimer = TimeBetweenAttacks;
+            _wasAttacking = isAttacking;
+
+            // Engaged = chasing (inside DetectionRadius) or mid-swing. While staggered the previous value is
+            // kept (the early return above), so a hit doesn't briefly drop the player out of combat.
+            SetEngaged(isAttacking || distanceToPlayer <= DetectionRadius);
+
+            // Lock movement while mid-swing. No turning here: MeleeCombatController owns rotation during
+            // an attack (TrackTargetDuringWindup turns toward the player until AE_AttackActive, then the
+            // swing is committed so it can still be sidestepped).
+            if (isAttacking)
             {
                 SafeStopAgent();
-                FaceTarget(_playerTransform.position);
                 UpdateAnimationSpeed(0f);
                 return;
             }
@@ -104,7 +152,6 @@ namespace StarterAssets.Combat
                 if (_attackCooldownTimer <= 0f)
                 {
                     ExecuteAttackChoice();
-                    _attackCooldownTimer = TimeBetweenAttacks;
                 }
             }
             // 3. IN DETECTION RANGE: Chase player
@@ -130,6 +177,16 @@ namespace StarterAssets.Combat
             }
         }
 
+        private void SetEngaged(bool engaged)
+        {
+            if (engaged == _isEngaged) return;
+            _isEngaged = engaged;
+
+            if (_playerCombatState == null) return;
+            if (engaged) _playerCombatState.RegisterEngagedEnemy(this);
+            else _playerCombatState.UnregisterEngagedEnemy(this);
+        }
+
         private void ExecuteAttackChoice()
         {
             if (Random.value < HeavyAttackChance)
@@ -151,6 +208,7 @@ namespace StarterAssets.Combat
                 if (playerObj != null)
                 {
                     _playerTransform = playerObj.transform;
+                    _playerCombatState = playerObj.GetComponentInParent<CombatStateTracker>();
                     return;
                 }
             }
@@ -164,6 +222,7 @@ namespace StarterAssets.Combat
                     if (hit.transform.root == transform.root) continue; // Ignore own hierarchy
 
                     _playerTransform = hit.transform;
+                    _playerCombatState = hit.GetComponentInParent<CombatStateTracker>();
                     break;
                 }
             }

@@ -1,8 +1,15 @@
 using UnityEngine;
-using Unity.Cinemachine;
 
 namespace StarterAssets.Combat
 {
+    /// <summary>
+    /// Player-only glue between lock-on input, LockOnController and MeleeCombatController.
+    ///
+    /// Deliberately does NOT touch the camera: ThirdPersonController.CameraRotation() is the single owner
+    /// of camera rotation (its locked-on branch already tracks LockOnController's target). Having this
+    /// script also write the same camera-root transform meant two systems fought over it, and whichever
+    /// ran later in the frame silently won.
+    /// </summary>
     [RequireComponent(typeof(PlayerMeleeCombatInput))]
     [RequireComponent(typeof(LockOnController))]
     [RequireComponent(typeof(MeleeCombatController))]
@@ -12,68 +19,35 @@ namespace StarterAssets.Combat
         private LockOnController _lockOnController;
         private MeleeCombatController _meleeCombat;
 
-        [Header("Camera Integration")]
-        [Tooltip("Manually assign your PlayerCameraRoot here, or leave blank to auto-detect from Cinemachine Camera.")]
-        public Transform cameraRoot; 
-        [Tooltip("How fast the camera snaps/rotates to face the locked target.")]
-        public float rotationSpeed = 15f;
-
         private void Awake()
         {
             _input = GetComponent<PlayerMeleeCombatInput>();
             _lockOnController = GetComponent<LockOnController>();
             _meleeCombat = GetComponent<MeleeCombatController>();
-            
-            if (cameraRoot == null)
-            {
-                var cinemachineCam = FindObjectOfType<CinemachineCamera>();
-                if (cinemachineCam != null)
-                {
-                    cameraRoot = cinemachineCam.Target.TrackingTarget;
-                }
-            }
         }
 
         private void Update()
         {
-            // 1. Handle Lock-On Toggle Request
+            // 1. Lock-on toggle request
             if (_input.LockOnRequested)
             {
                 _lockOnController.ToggleLockOn();
                 _input.ConsumeLockOnRequest();
             }
 
-            // 2. Handle Target Switch Request
-            if (_lockOnController.IsLockedOn && _input.TargetSwitchDirection != Vector2.zero)
-            {
-                _lockOnController.SwitchTarget(_input.TargetSwitchDirection);
-            }
-
-            // 3. Keep Combat and Camera locked onto the target
+            // 2. While locked on: handle target switching, and keep attacks facing the target
             if (_lockOnController.IsLockedOn)
             {
-                Transform targetTransform = _lockOnController.CurrentTargetTransform;
-                _meleeCombat.lookAtReference = targetTransform;
-                
-                Debug.Log($"[Bridge] IsLockedOn is TRUE. Target: {(targetTransform != null ? targetTransform.name : "NULL")}");
-                Debug.Log($"[Bridge] cameraRoot assigned: {(cameraRoot != null ? cameraRoot.name : "NULL - ASSIGN IN INSPECTOR!")}");
-                
-                if (cameraRoot != null)
+                if (_input.TargetSwitchDirection != Vector2.zero)
                 {
-                    // Calculate direction from camera root to enemy
-                    Vector3 directionToTarget = (targetTransform.position + Vector3.up * 1f) - cameraRoot.position;
-                    Quaternion targetRotation = Quaternion.LookRotation(directionToTarget);
+                    _lockOnController.SwitchTarget(_input.TargetSwitchDirection);
+                }
 
-                    // Smoothly rotate the camera root to face the enemy
-                    cameraRoot.rotation = Quaternion.Slerp(cameraRoot.rotation, targetRotation, Time.deltaTime * rotationSpeed);
-                }
+                _meleeCombat.lookAtReference = _lockOnController.CurrentTargetTransform;
             }
-            else
+            else if (_meleeCombat.lookAtReference != null)
             {
-                if (_meleeCombat.lookAtReference != null)
-                {
-                    _meleeCombat.lookAtReference = null;
-                }
+                _meleeCombat.lookAtReference = null;
             }
         }
     }

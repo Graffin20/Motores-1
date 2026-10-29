@@ -20,6 +20,13 @@ namespace StarterAssets.Combat
         /// <summary>True for as long as block is held. Not consumed — read directly, it's a held state, not a pulse.</summary>
         bool BlockHeld { get; }
 
+        /// <summary>
+        /// World-space direction the source wants its attacks aimed at (only the horizontal part is used),
+        /// read once at the start of each attack/combo stage. Return false to defer to
+        /// MeleeCombatController.lookAtReference (or keep the current facing if that's unset).
+        /// </summary>
+        bool TryGetAttackDirection(out UnityEngine.Vector3 direction);
+
         void ConsumeAttackRequest();
         void ConsumeHeavyAttackRequest();
         void ConsumeRollRequest();

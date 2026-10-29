@@ -11,20 +11,48 @@ namespace StarterAssets.Combat
         public float maxLockAngle = 75f;
         public GameObject lockOnUIPrefab;
 
+        [Tooltip("Optional override for the camera used to score targets and check line of sight. Leave empty to use ThirdPersonController's GameplayCamera.")]
+        [SerializeField] private Transform _viewCameraTransform;
+
         private ILockable _currentTarget;
         private GameObject _activeUIInstance;
         private Transform _transformCache;
-        private Transform _viewCameraTransform;
+        private ThirdPersonController _thirdPersonController;
 
-        public bool IsLockedOn => _currentTarget != null && _currentTarget.Transform != null && _currentTarget.IsAlive;
-        public Transform CurrentTargetTransform => _currentTarget?.Transform;
+        public bool IsLockedOn => IsTargetUsable(_currentTarget);
+        public Transform CurrentTargetTransform => IsTargetUsable(_currentTarget) ? _currentTarget.Transform : null;
+
+        /// <summary>
+        /// ILockable is an interface, so a plain `== null` / `?.` on it can't see Unity's "destroyed object"
+        /// null, and touching .Transform on a destroyed MonoBehaviour throws. Check the underlying Unity
+        /// object explicitly before touching anything on it.
+        /// </summary>
+        private static bool IsTargetUsable(ILockable target)
+        {
+            if (target == null) return false;
+            if (target is UnityEngine.Object unityObject && unityObject == null) return false; // destroyed
+            return target.Transform != null && target.IsAlive;
+        }
 
         private void Awake()
         {
             _transformCache = transform;
-            if (_viewCameraTransform == null && Camera.main != null)
+            _thirdPersonController = GetComponent<ThirdPersonController>(); // optional camera source
+        }
+
+        private void Start()
+        {
+            // Not in Awake: ThirdPersonController resolves its camera in its own Awake, which may run
+            // after this one. Camera.main isn't used — with several MainCamera-tagged cameras it can
+            // resolve to the wrong one.
+            ResolveViewCamera();
+        }
+
+        private void ResolveViewCamera()
+        {
+            if (_viewCameraTransform == null && _thirdPersonController != null)
             {
-                _viewCameraTransform = Camera.main.transform;
+                _viewCameraTransform = _thirdPersonController.CameraTransform;
             }
         }
 
@@ -32,7 +60,7 @@ namespace StarterAssets.Combat
         {
             if (_currentTarget != null)
             {
-                if (_currentTarget.Transform == null || !_currentTarget.IsAlive || 
+                if (!IsTargetUsable(_currentTarget) ||
                     Vector3.Distance(_transformCache.position, _currentTarget.Transform.position) > maxLockRange ||
                     HasLineOfSightObstacle(_currentTarget.Transform))
                 {
@@ -56,8 +84,7 @@ namespace StarterAssets.Combat
 
         public void AcquireBestTarget()
         {
-            if (_viewCameraTransform == null && Camera.main != null)
-                _viewCameraTransform = Camera.main.transform;
+            ResolveViewCamera();
 
             Collider[] hits = Physics.OverlapSphere(_transformCache.position, maxLockRange, targetLayer);
             Debug.Log($"[LockOn] OverlapSphere found {hits.Length} colliders on targetLayer.");
@@ -71,7 +98,7 @@ namespace StarterAssets.Combat
             foreach (var hit in hits)
             {
                 if (hit == null) continue;
-                
+
                 Debug.Log($"[LockOn] Checking collider on GameObject: {hit.gameObject.name}");
 
                 if (!hit.TryGetComponent<ILockable>(out var target))
@@ -153,7 +180,7 @@ namespace StarterAssets.Combat
 
             // Use camera position, or player position offset upward
             Vector3 origin = _viewCameraTransform != null ? _viewCameraTransform.position : _transformCache.position + Vector3.up * 1.5f;
-    
+
             // Target center mass of the enemy
             Vector3 targetPosition = targetTransform.position + Vector3.up * 1f;
             Vector3 direction = targetPosition - origin;
@@ -179,7 +206,7 @@ namespace StarterAssets.Combat
             if (lockOnUIPrefab != null && _currentTarget != null)
             {
                 _activeUIInstance = Instantiate(lockOnUIPrefab, _currentTarget.Transform);
-                _activeUIInstance.transform.localPosition = new Vector3(0f, 2f, 0f); 
+                _activeUIInstance.transform.localPosition = new Vector3(0f, 2f, 0f);
             }
         }
     }

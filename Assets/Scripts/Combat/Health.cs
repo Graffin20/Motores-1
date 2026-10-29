@@ -9,7 +9,7 @@ namespace StarterAssets.Combat
         public float CurrentHealth { get; set; }
 
         [Header("Hit Reaction")]
-        [Tooltip("Animator trigger fired when damage is taken (and the hit doesn't kill).")]
+        [Tooltip("Animator trigger fired when damage is taken (and the hit doesn't kill). Also the fallback for any stagger whose own trigger doesn't exist on this Animator.")]
         public string HitAnimationTrigger = "Hit";
         [Tooltip("Safety fallback: if AE_HitReactionEnd() never fires on the Hit clip, the stun ends automatically after this long instead of getting stuck forever.")]
         public float HitStunSafetyDuration = 1f;
@@ -35,6 +35,11 @@ namespace StarterAssets.Combat
         private int _dieTriggerHash;
         private MeleeCombatController _meleeCombat;
         private RollController _roll;
+        private BlockController _block;
+
+        // Every sibling that can grant immunity (roll i-frames, post-parry window, ...), gathered once
+        // so Health doesn't need to know which concrete components provide it.
+        private IInvulnerabilitySource[] _invulnerabilitySources;
 
         private bool _isHitStunned;
         private float _hitStunTimer;
@@ -45,10 +50,26 @@ namespace StarterAssets.Combat
 
         public bool IsDead { get; private set; }
 
-        /// <summary>True while a hit-reaction animation is playing — read this from
-        /// ThirdPersonController.Move() (alongside IsAttacking/IsRolling) to suppress
-        /// locomotion during the stagger.</summary>
+        /// <summary>True during any stagger — a regular hit reaction, being parried, or a guard break
+        /// (see Stagger()). Everything that refuses to act while stunned reads this, so new stagger
+        /// sources are gated automatically.</summary>
         public bool IsHitStunned => _isHitStunned;
+
+        /// <summary>True while a knockback push is moving this character. AI steering reads this so it
+        /// doesn't fight the push with its own movement.</summary>
+        public bool IsBeingKnockedBack => _isBeingKnockedBack;
+
+        public bool IsInvulnerable
+        {
+            get
+            {
+                foreach (var source in _invulnerabilitySources)
+                {
+                    if (source.IsInvulnerable) return true;
+                }
+                return false;
+            }
+        }
 
         private void Awake()
         {
@@ -57,8 +78,10 @@ namespace StarterAssets.Combat
             _hitTriggerHash = Animator.StringToHash(HitAnimationTrigger);
             _dieTriggerHash = Animator.StringToHash(DieAnimationTrigger);
             _meleeCombat = GetComponent<MeleeCombatController>(); // optional — null means nothing to cancel
-            _roll = GetComponent<RollController>();                 // optional — null means no i-frame check
-            _controller = GetComponent<CharacterController>();     // optional — null means no knockback movement
+            _roll = GetComponent<RollController>();                 // optional — null means nothing to cancel
+            _block = GetComponent<BlockController>();             // optional — null means hits are never blocked/parried
+            _controller = GetComponent<CharacterController>();    // optional — null means no knockback movement
+            _invulnerabilitySources = GetComponents<MonoBehaviour>().OfType<IInvulnerabilitySource>().ToArray();
 
             // Gather whichever of these exist on this GameObject (player or AI, hence the
             // GetComponent-and-filter-nulls approach rather than assuming a fixed set) so death
@@ -85,8 +108,8 @@ namespace StarterAssets.Combat
             _hitStunTimer -= Time.deltaTime;
             if (_hitStunTimer <= 0f)
             {
-                Debug.LogWarning($"{nameof(Health)} on '{name}': hit-stun exceeded {HitStunSafetyDuration}s " +
-                                  "without AE_HitReactionEnd() firing. Check the Hit clip has the event wired up. Force-ending.", this);
+                Debug.LogWarning($"{nameof(Health)} on '{name}': stagger exceeded its safety duration " +
+                                  "without AE_HitReactionEnd()/AE_StaggerEnd() firing. Check the playing reaction clip has the event wired up. Force-ending.", this);
                 AE_HitReactionEnd();
             }
         }
@@ -100,44 +123,89 @@ namespace StarterAssets.Combat
                 return;
             }
 
-            float speed = _knockbackSpeed;
-            _controller.Move(_knockbackDirection * speed * Time.deltaTime);
+            _controller.Move(_knockbackDirection * _knockbackSpeed * Time.deltaTime);
         }
 
-        public void TakeDamage(float damage, Vector3 hitSourcePosition, float knockbackDistanceMultiplier = 1f, float knockbackDurationMultiplier = 1f)
+        /// <summary>
+        /// Resolves a hit in order of precedence: dead -> invulnerable -> block/parry -> plain hit.
+        /// Returns the outcome so the attacker can react (MeleeCombatController staggers itself on Parried).
+        /// </summary>
+        public HitResult TakeDamage(HitInfo hit)
         {
-            if (IsDead) return;
+            if (IsDead) return HitResult.Ignored;
 
-            if (_roll != null && _roll.IsInvulnerable)
+            if (IsInvulnerable)
             {
-                Debug.Log($"{gameObject.name} dodged {damage} damage (invulnerable during roll).");
-                return;
+                Debug.Log($"{gameObject.name} negated {hit.Damage} damage (invulnerable).");
+                return HitResult.Invulnerable;
             }
 
-            CurrentHealth -= damage;
-            Debug.Log($"{gameObject.name} took {damage} damage. Health remaining: {CurrentHealth}");
+            float damageThrough = hit.Damage;
+            BlockResolution block = _block != null
+                ? _block.ResolveIncomingHit(hit, out damageThrough)
+                : BlockResolution.NotBlocked;
 
-            ApplyKnockback(hitSourcePosition, knockbackDistanceMultiplier, knockbackDurationMultiplier);
+            switch (block)
+            {
+                case BlockResolution.Parried:
+                    // No damage, no knockback for the parrier — BlockController already applied the
+                    // parry's own effects (post-parry window, push). The attacker staggers itself.
+                    return HitResult.Parried;
+
+                case BlockResolution.Blocked:
+                    ApplyKnockback(hit.SourcePosition,
+                                   hit.KnockbackDistanceMultiplier * _block.BlockedKnockbackMultiplier,
+                                   hit.KnockbackDurationMultiplier);
+                    return HitResult.Blocked;
+
+                case BlockResolution.GuardBroken:
+                    return ApplyDamageAndStagger(hit, damageThrough,
+                                                 _block.GuardBreakAnimationTrigger,
+                                                 _block.GuardBreakStaggerSafetyDuration,
+                                                 HitResult.GuardBroken);
+
+                default:
+                    return ApplyDamageAndStagger(hit, hit.Damage,
+                                                 HitAnimationTrigger,
+                                                 HitStunSafetyDuration,
+                                                 HitResult.Hit);
+            }
+        }
+
+        /// <summary>Shared tail of a plain hit and a guard break: lose health, get pushed, then either
+        /// die or stagger with the given reaction.</summary>
+        private HitResult ApplyDamageAndStagger(in HitInfo hit, float damage, string staggerTrigger,
+                                                float staggerSafetyDuration, HitResult resultIfSurvived)
+        {
+            CurrentHealth -= damage;
+            Debug.Log($"{gameObject.name} took {damage} damage ({resultIfSurvived}). Health remaining: {CurrentHealth}");
+
+            ApplyKnockback(hit.SourcePosition, hit.KnockbackDistanceMultiplier, hit.KnockbackDurationMultiplier);
 
             if (CurrentHealth <= 0f)
             {
                 Die();
-                return;
+                return HitResult.Killed;
             }
 
-            BeginHitStun();
+            Stagger(staggerSafetyDuration, staggerTrigger);
+            return resultIfSurvived;
         }
 
-        private void ApplyKnockback(Vector3 hitSourcePosition, float distanceMultiplier, float durationMultiplier)
+        /// <summary>
+        /// Pushes this character horizontally away from sourcePosition over time. Public on its own (not
+        /// only via TakeDamage) so non-damaging effects, like the post-parry shockwave, can push too.
+        /// </summary>
+        public void ApplyKnockback(Vector3 sourcePosition, float distanceMultiplier = 1f, float durationMultiplier = 1f)
         {
-            if (_controller == null) return;
+            if (_controller == null || IsDead) return;
 
-            Vector3 pushDirection = transform.position - hitSourcePosition;
+            Vector3 pushDirection = transform.position - sourcePosition;
             pushDirection.y = 0f; // horizontal only — don't launch the character into the air
 
             if (pushDirection.sqrMagnitude < 0.0001f)
             {
-                // Hit source is directly on top of us (or wasn't provided meaningfully) —
+                // Source is directly on top of us (or wasn't provided meaningfully) —
                 // nothing sensible to push away from, so skip rather than picking an arbitrary direction.
                 return;
             }
@@ -147,21 +215,38 @@ namespace StarterAssets.Combat
             // (or vice versa), rather than distance and duration always scaling together.
             float distance = KnockbackDistance * distanceMultiplier;
             float duration = KnockbackDuration * durationMultiplier;
+            if (duration <= 0f || distance <= 0f) return;
 
             _knockbackDirection = pushDirection.normalized;
-            _knockbackSpeed = duration > 0f ? distance / duration : 0f;
+            _knockbackSpeed = distance / duration;
             _knockbackTimer = duration;
             _isBeingKnockedBack = true;
         }
 
-        private void BeginHitStun()
+        /// <summary>
+        /// Generalized hitstun: locks the character out (IsHitStunned), cancels any attack, and plays a
+        /// reaction. Used for regular hits, being parried, and guard breaks. Ends via AE_HitReactionEnd /
+        /// AE_StaggerEnd on the reaction clip; safetyDuration is only the dev fallback if that event never
+        /// fires. If animationTrigger doesn't exist on this Animator, the Hit reaction plays instead so a
+        /// new stagger type works before its own clip is authored.
+        /// </summary>
+        public void Stagger(float safetyDuration, string animationTrigger)
         {
+            if (IsDead) return;
+
             _isHitStunned = true;
-            _hitStunTimer = HitStunSafetyDuration;
+            _hitStunTimer = safetyDuration;
 
+            // A stagger interrupts whatever action was playing; each action is cancelled explicitly
+            // because its own end event (AE_AttackEnd, AE_IsRolling) won't fire once the clip is cut.
             _meleeCombat?.ForceCancelAttack();
+            _roll?.ForceCancelRoll();
 
-            if (_hasAnimator) _animator.SetTrigger(_hitTriggerHash);
+            if (!_hasAnimator) return;
+
+            int triggerHash = Animator.StringToHash(animationTrigger);
+            if (!_animator.HasParameter(triggerHash)) triggerHash = _hitTriggerHash;
+            if (_animator.HasParameter(triggerHash)) _animator.SetTrigger(triggerHash);
         }
 
         /// <summary>Animation Event — place at the end of the Hit reaction clip.</summary>
@@ -169,6 +254,9 @@ namespace StarterAssets.Combat
         {
             _isHitStunned = false;
         }
+
+        /// <summary>Animation Event — same as AE_HitReactionEnd, named for the Parried / GuardBreak clips.</summary>
+        public void AE_StaggerEnd() => AE_HitReactionEnd();
 
         public void Heal(float heal)
         {
@@ -183,6 +271,7 @@ namespace StarterAssets.Combat
             Debug.Log($"{gameObject.name} died!");
 
             _meleeCombat?.ForceCancelAttack();
+            _roll?.ForceCancelRoll();
 
             if (_hasAnimator) _animator.SetTrigger(_dieTriggerHash);
 

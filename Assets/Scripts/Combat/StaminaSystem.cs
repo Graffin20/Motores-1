@@ -58,5 +58,20 @@ namespace StarterAssets.Combat
             _regenDelayTimer = RegenDelay;
             return true;
         }
+
+        /// <summary>
+        /// Spends as much of the amount as is available (down to 0) and returns what was actually
+        /// spent. Unlike TrySpend this never refuses — used where running out has its own
+        /// consequence, e.g. a guard break absorbing only part of a hit.
+        /// </summary>
+        public float SpendUpTo(float amount)
+        {
+            if (amount <= 0f) return 0f;
+
+            float spent = Mathf.Min(amount, CurrentStamina);
+            CurrentStamina -= spent;
+            _regenDelayTimer = RegenDelay;
+            return spent;
+        }
     }
 }
