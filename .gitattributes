@@ -1,2 +1,140 @@
-# Auto detect text files and perform LF normalization
+# =============================================================================
+# Unity project .gitattributes
+#
+# Rules are matched by extension project-wide (not by folder), so heavy files
+# get LFS wherever they live and small text files under Assets/Assets stay in
+# plain git. Later lines override earlier ones.
+# =============================================================================
+
+# Normalize line endings for anything git detects as text.
 * text=auto
+
+# -----------------------------------------------------------------------------
+# Unity YAML (project uses Force Text serialization). Kept OUT of LFS so they
+# can be diffed and merged. merge=unityyamlmerge is used if the driver is set up
+# locally (see Unity docs "Smart merge"); otherwise git's normal merge applies.
+# -----------------------------------------------------------------------------
+*.unity               text merge=unityyamlmerge
+*.prefab              text merge=unityyamlmerge
+*.asset               text merge=unityyamlmerge
+*.mat                 text merge=unityyamlmerge
+*.anim                text merge=unityyamlmerge
+*.controller          text merge=unityyamlmerge
+*.overrideController  text merge=unityyamlmerge
+*.meta                text merge=unityyamlmerge
+*.mask                text merge=unityyamlmerge
+*.playable            text merge=unityyamlmerge
+*.signal              text merge=unityyamlmerge
+*.physicMaterial      text merge=unityyamlmerge
+*.physicsMaterial2D   text merge=unityyamlmerge
+*.lighting            text merge=unityyamlmerge
+*.giparams            text merge=unityyamlmerge
+*.brush               text merge=unityyamlmerge
+*.terrainlayer        text merge=unityyamlmerge
+*.flare               text merge=unityyamlmerge
+*.fontsettings        text merge=unityyamlmerge
+*.guiskin             text merge=unityyamlmerge
+*.mixer               text merge=unityyamlmerge
+*.renderTexture       text merge=unityyamlmerge
+*.cubemap             text merge=unityyamlmerge
+*.spriteatlas         text merge=unityyamlmerge
+*.spriteatlasv2       text merge=unityyamlmerge
+*.preset              text merge=unityyamlmerge
+*.shadervariants      text merge=unityyamlmerge
+
+# Code / text assets (explicit for clarity; text=auto would catch these anyway).
+*.cs             text diff=csharp
+*.shader         text
+*.hlsl           text
+*.cginc          text
+*.compute        text
+*.shadergraph    text
+*.shadersubgraph text
+*.vfx            text
+*.inputactions   text
+*.json           text
+*.xml            text
+*.uxml           text
+*.uss            text
+*.txt            text
+*.md             text
+
+# -----------------------------------------------------------------------------
+# Git LFS: binary / large assets
+# -----------------------------------------------------------------------------
+
+# Textures / images
+*.png   filter=lfs diff=lfs merge=lfs -text
+*.jpg   filter=lfs diff=lfs merge=lfs -text
+*.jpeg  filter=lfs diff=lfs merge=lfs -text
+*.tga   filter=lfs diff=lfs merge=lfs -text
+*.tif   filter=lfs diff=lfs merge=lfs -text
+*.tiff  filter=lfs diff=lfs merge=lfs -text
+*.psd   filter=lfs diff=lfs merge=lfs -text
+*.psb   filter=lfs diff=lfs merge=lfs -text
+*.exr   filter=lfs diff=lfs merge=lfs -text
+*.hdr   filter=lfs diff=lfs merge=lfs -text
+*.bmp   filter=lfs diff=lfs merge=lfs -text
+*.gif   filter=lfs diff=lfs merge=lfs -text
+*.iff   filter=lfs diff=lfs merge=lfs -text
+*.dds   filter=lfs diff=lfs merge=lfs -text
+*.ico   filter=lfs diff=lfs merge=lfs -text
+*.sbsar filter=lfs diff=lfs merge=lfs -text
+
+# 3D models / vegetation
+*.fbx    filter=lfs diff=lfs merge=lfs -text
+*.obj    filter=lfs diff=lfs merge=lfs -text
+*.glb    filter=lfs diff=lfs merge=lfs -text
+*.gltf   filter=lfs diff=lfs merge=lfs -text
+*.dae    filter=lfs diff=lfs merge=lfs -text
+*.blend  filter=lfs diff=lfs merge=lfs -text
+*.blend1 filter=lfs diff=lfs merge=lfs -text
+*.3ds    filter=lfs diff=lfs merge=lfs -text
+*.max    filter=lfs diff=lfs merge=lfs -text
+*.ma     filter=lfs diff=lfs merge=lfs -text
+*.mb     filter=lfs diff=lfs merge=lfs -text
+*.st     filter=lfs diff=lfs merge=lfs -text
+*.spm    filter=lfs diff=lfs merge=lfs -text
+
+# Audio
+*.wav  filter=lfs diff=lfs merge=lfs -text
+*.mp3  filter=lfs diff=lfs merge=lfs -text
+*.ogg  filter=lfs diff=lfs merge=lfs -text
+*.aif  filter=lfs diff=lfs merge=lfs -text
+*.aiff filter=lfs diff=lfs merge=lfs -text
+*.flac filter=lfs diff=lfs merge=lfs -text
+
+# Video
+*.mp4  filter=lfs diff=lfs merge=lfs -text
+*.mov  filter=lfs diff=lfs merge=lfs -text
+*.webm filter=lfs diff=lfs merge=lfs -text
+*.ogv  filter=lfs diff=lfs merge=lfs -text
+
+# Fonts
+*.ttf filter=lfs diff=lfs merge=lfs -text
+*.otf filter=lfs diff=lfs merge=lfs -text
+
+# Archives / documents / packages
+*.zip          filter=lfs diff=lfs merge=lfs -text
+*.7z           filter=lfs diff=lfs merge=lfs -text
+*.rar          filter=lfs diff=lfs merge=lfs -text
+*.pdf          filter=lfs diff=lfs merge=lfs -text
+*.unitypackage filter=lfs diff=lfs merge=lfs -text
+
+# Native plugins
+*.dll   filter=lfs diff=lfs merge=lfs -text
+*.so    filter=lfs diff=lfs merge=lfs -text
+*.a     filter=lfs diff=lfs merge=lfs -text
+*.dylib filter=lfs diff=lfs merge=lfs -text
+
+# -----------------------------------------------------------------------------
+# .asset files Unity ALWAYS writes as binary, even with Force Text (terrain
+# heightmaps, baked lighting, baked NavMesh). Matched by Unity's default names,
+# because most other .asset files are small YAML that should stay mergeable.
+# If you rename a terrain asset, keep "Terrain" in the name or add a rule here.
+# -----------------------------------------------------------------------------
+TerrainData*.asset             filter=lfs diff=lfs merge=lfs -text
+Terrain_*.asset                filter=lfs diff=lfs merge=lfs -text
+New[[:space:]]Terrain*.asset   filter=lfs diff=lfs merge=lfs -text
+LightingData.asset             filter=lfs diff=lfs merge=lfs -text
+NavMesh-*.asset                filter=lfs diff=lfs merge=lfs -text

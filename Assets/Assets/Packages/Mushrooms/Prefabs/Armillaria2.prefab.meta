@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 96ab9cab0b2d5e849b943529973eb959
+timeCreated: 1436613491
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 39867
+  packageName: Mushrooms
+  packageVersion: 1.0
+  assetPath: Assets/Mushrooms/Prefabs/Armillaria2.prefab
+  uploadId: 932026

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 265a09a9ec2742442ad5c89ff7355e09
+timeCreated: 1436473727
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 39867
+  packageName: Mushrooms
+  packageVersion: 1.0
+  assetPath: Assets/Mushrooms/Materials/Boletus edulis1.mat
+  uploadId: 932026

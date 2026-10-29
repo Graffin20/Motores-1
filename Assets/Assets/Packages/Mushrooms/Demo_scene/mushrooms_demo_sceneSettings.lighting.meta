@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1eee5b526e4847c49b43c5a0299e63c8
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 4890085278179872738
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 39867
+  packageName: Mushrooms
+  packageVersion: 1.0
+  assetPath: Assets/Mushrooms/Demo_scene/mushrooms_demo_sceneSettings.lighting
+  uploadId: 932026

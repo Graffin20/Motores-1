@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: b6f9fb957e7e68641b510ebd8501c026
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 180352
+  packageName: Fristy stylize Modular Assets 2
+  packageVersion: 2.0
+  assetPath: Assets/Fristy stylize Modular Assets 2/Shaders/BIR/Water.shader
+  uploadId: 402846

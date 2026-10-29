@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: fdb0eccffb306416bb7f5ccf0d0bf83c
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures: []
+  nonModifiableTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 180352
+  packageName: Fristy stylize Modular Assets 2
+  packageVersion: 2.0
+  assetPath: Assets/Fristy stylize Modular Assets 2/Shaders/Shaders/CustomLighting.hlsl
+  uploadId: 402846
