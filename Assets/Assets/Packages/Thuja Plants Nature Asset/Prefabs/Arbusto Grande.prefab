@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 43290174701720606}
+  - component: {fileID: 696241750678491224}
   m_Layer: 0
   m_Name: Arbusto Grande
   m_TagString: Untagged
@@ -26,8 +27,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -27.25, y: 0.19999987, z: 45.87}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.45, y: 1.45, z: 1.45}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 7469750848056834470}
   - {fileID: 7883500574888770013}
@@ -35,6 +36,27 @@ Transform:
   - {fileID: 516480002795391464}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &696241750678491224
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3719509387380520862}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 6.292902, y: 4.0384903, z: 0.8514219}
+  m_Center: {x: 2.0379171, y: 1.5192468, z: -0.087530814}
 --- !u!1001 &1951340983246163561
 PrefabInstance:
   m_ObjectHideFlags: 0
