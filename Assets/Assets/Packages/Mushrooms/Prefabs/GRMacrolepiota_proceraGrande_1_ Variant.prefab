@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 176410, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
       propertyPath: m_Name
-      value: Macrolepiota_proceraGrande_1_ Variant
+      value: GRMacrolepiota_proceraGrande_1_ Variant
       objectReference: {fileID: 0}
     - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
       propertyPath: m_LocalPosition.x
@@ -59,6 +59,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 176410, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7031515944921692967}
+    - targetCorrespondingSourceObject: {fileID: 176410, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7553623241649337647}
   m_SourcePrefab: {fileID: 100100000, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
 --- !u!1 &987011603653431 stripped
 GameObject:
@@ -88,3 +91,28 @@ CapsuleCollider:
   m_Height: 7.51695
   m_Direction: 1
   m_Center: {x: 0, y: 3.2605426, z: 0}
+--- !u!205 &7553623241649337647
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 987011603653431}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2350780, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers: []
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers: []
+  m_Enabled: 1

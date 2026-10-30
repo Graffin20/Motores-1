@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 107932, guid: 96ab9cab0b2d5e849b943529973eb959, type: 3}
       propertyPath: m_Name
-      value: ArmillariaGrande_2 Variant
+      value: GRArmillariaGrande_2 Variant
       objectReference: {fileID: 0}
     - target: {fileID: 432294, guid: 96ab9cab0b2d5e849b943529973eb959, type: 3}
       propertyPath: m_LocalPosition.x
@@ -59,6 +59,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 107932, guid: 96ab9cab0b2d5e849b943529973eb959, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4629980610629398879}
+    - targetCorrespondingSourceObject: {fileID: 107932, guid: 96ab9cab0b2d5e849b943529973eb959, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1829555160628089699}
   m_SourcePrefab: {fileID: 100100000, guid: 96ab9cab0b2d5e849b943529973eb959, type: 3}
 --- !u!1 &8334922956052652666 stripped
 GameObject:
@@ -88,3 +91,28 @@ CapsuleCollider:
   m_Height: 7.08896
   m_Direction: 1
   m_Center: {x: 0, y: 3.48186, z: 0}
+--- !u!205 &1829555160628089699
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8334922956052652666}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2353646, guid: 96ab9cab0b2d5e849b943529973eb959, type: 3}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers: []
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers: []
+  m_Enabled: 1

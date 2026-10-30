@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 135948, guid: e166b43dd3382244286b117c921f2045, type: 3}
       propertyPath: m_Name
-      value: Boletus_edulisGrande_3_ Variant
+      value: GRBoletus_edulisGrande_3_ Variant
       objectReference: {fileID: 0}
     - target: {fileID: 480368, guid: e166b43dd3382244286b117c921f2045, type: 3}
       propertyPath: m_LocalPosition.x
@@ -59,6 +59,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 135948, guid: e166b43dd3382244286b117c921f2045, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5913229020735051038}
+    - targetCorrespondingSourceObject: {fileID: 135948, guid: e166b43dd3382244286b117c921f2045, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 825273854496776015}
   m_SourcePrefab: {fileID: 100100000, guid: e166b43dd3382244286b117c921f2045, type: 3}
 --- !u!1 &3948572479410657027 stripped
 GameObject:
@@ -88,3 +91,28 @@ CapsuleCollider:
   m_Height: 5.84082
   m_Direction: 1
   m_Center: {x: -0.42167974, y: 2.5369594, z: 0.31}
+--- !u!205 &825273854496776015
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3948572479410657027}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2339608, guid: e166b43dd3382244286b117c921f2045, type: 3}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers: []
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers: []
+  m_Enabled: 1

@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 167922, guid: db398c4403f3eca498ffc2b16d0862f5, type: 3}
       propertyPath: m_Name
-      value: Lepista_nudaGrande_1_ Variant
+      value: GRLepista_nudaGrande_1_ Variant
       objectReference: {fileID: 0}
     - target: {fileID: 448640, guid: db398c4403f3eca498ffc2b16d0862f5, type: 3}
       propertyPath: m_LocalScale.x
@@ -75,6 +75,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 167922, guid: db398c4403f3eca498ffc2b16d0862f5, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7354649397319256495}
+    - targetCorrespondingSourceObject: {fileID: 167922, guid: db398c4403f3eca498ffc2b16d0862f5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5751007799598496890}
   m_SourcePrefab: {fileID: 100100000, guid: db398c4403f3eca498ffc2b16d0862f5, type: 3}
 --- !u!1 &7277892057318815241 stripped
 GameObject:
@@ -104,3 +107,28 @@ CapsuleCollider:
   m_Height: 4.7338133
   m_Direction: 1
   m_Center: {x: 0, y: 2.2219462, z: 0}
+--- !u!205 &5751007799598496890
+LODGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7277892057318815241}
+  serializedVersion: 2
+  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
+  m_Size: 1
+  m_FadeMode: 0
+  m_AnimateCrossFading: 0
+  m_LastLODIsBillboard: 0
+  m_LODs:
+  - screenRelativeHeight: 0.6
+    fadeTransitionWidth: 0
+    renderers:
+    - renderer: {fileID: 2349120, guid: db398c4403f3eca498ffc2b16d0862f5, type: 3}
+  - screenRelativeHeight: 0.3
+    fadeTransitionWidth: 0
+    renderers: []
+  - screenRelativeHeight: 0.1
+    fadeTransitionWidth: 0
+    renderers: []
+  m_Enabled: 1
