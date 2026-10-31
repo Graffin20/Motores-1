@@ -14,15 +14,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 486756, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -7.3044124
+      value: -32.256657
       objectReference: {fileID: 0}
     - target: {fileID: 486756, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.18666516
+      value: 0.19999859
       objectReference: {fileID: 0}
     - target: {fileID: 486756, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -14.968127
+      value: 8.478894
       objectReference: {fileID: 0}
     - target: {fileID: 486756, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
       propertyPath: m_LocalRotation.w
@@ -59,9 +59,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 164708, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3868620393021420268}
-    - targetCorrespondingSourceObject: {fileID: 164708, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 583349327295414682}
   m_SourcePrefab: {fileID: 100100000, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
 --- !u!1 &4282840909476403127 stripped
 GameObject:
@@ -91,28 +88,3 @@ CapsuleCollider:
   m_Height: 7.2032394
   m_Direction: 1
   m_Center: {x: 0, y: 3.6149535, z: 0}
---- !u!205 &583349327295414682
-LODGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4282840909476403127}
-  serializedVersion: 2
-  m_LocalReferencePoint: {x: 0, y: 0, z: 0}
-  m_Size: 1
-  m_FadeMode: 0
-  m_AnimateCrossFading: 0
-  m_LastLODIsBillboard: 0
-  m_LODs:
-  - screenRelativeHeight: 0.6
-    fadeTransitionWidth: 0
-    renderers:
-    - renderer: {fileID: 2305764, guid: cd5b616e0bf7c364ba30aaa596cde736, type: 3}
-  - screenRelativeHeight: 0.3
-    fadeTransitionWidth: 0
-    renderers: []
-  - screenRelativeHeight: 0.1
-    fadeTransitionWidth: 0
-    renderers: []
-  m_Enabled: 1
