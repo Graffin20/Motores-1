@@ -1633,7 +1633,7 @@ AudioSource:
   m_PlayOnAwake: 1
   m_Volume: 0.49
   m_Pitch: 1
-  Loop: 0
+  Loop: 1
   Mute: 0
   Spatialize: 0
   SpatializePostEffects: 0
@@ -3130,8 +3130,8 @@ Transform:
   m_GameObject: {fileID: 795774291}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -101.75, y: -62.78, z: -5.1551}
-  m_LocalScale: {x: 2.2861125, y: 1, z: 1.8671716}
+  m_LocalPosition: {x: -68, y: -62.78, z: -37.2}
+  m_LocalScale: {x: 7.9311323, y: 1, z: 1.8671716}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -4805,7 +4805,7 @@ GameObject:
   - component: {fileID: 1112202267}
   - component: {fileID: 1112202266}
   m_Layer: 0
-  m_Name: Terrain
+  m_Name: TerrainExterior
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4880,7 +4880,7 @@ Transform:
   m_GameObject: {fileID: 1112202265}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -129.7, y: -65.4, z: -53.2}
+  m_LocalPosition: {x: -129.7, y: -63, z: -50.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6230,8 +6230,8 @@ Transform:
   m_GameObject: {fileID: 1302535835}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -42, y: -62.78, z: -5.1551}
-  m_LocalScale: {x: 4.5110264, y: 1, z: 3.667752}
+  m_LocalPosition: {x: -72.1, y: -62.78, z: 23}
+  m_LocalScale: {x: 7.8423915, y: 1, z: 2.791376}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
