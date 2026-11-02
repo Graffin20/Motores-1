@@ -63,9 +63,14 @@ namespace StarterAssets.Combat
         {
             if (_currentTarget != null)
             {
-                if (!IsTargetUsable(_currentTarget) ||
-                    Vector3.Distance(_transformCache.position, _currentTarget.Transform.position) > maxLockRange ||
-                    HasLineOfSightObstacle(_currentTarget.Transform))
+                if (!IsTargetUsable(_currentTarget))
+                {
+                    // Target died (or was destroyed): move to the next enemy instead of dropping the lock.
+                    // Leaving range / losing sight still drops it, as before.
+                    if (!TryRetargetAfterDeath()) ClearLock();
+                }
+                else if (Vector3.Distance(_transformCache.position, _currentTarget.Transform.position) > maxLockRange ||
+                         HasLineOfSightObstacle(_currentTarget.Transform))
                 {
                     ClearLock();
                 }
@@ -178,6 +183,32 @@ namespace StarterAssets.Combat
             int index = candidates.IndexOf(_currentTarget);
             int step = inputDir.x > 0f ? 1 : -1;
             SetTarget(candidates[(index + step + candidates.Count) % candidates.Count]);
+        }
+
+        /// <summary>
+        /// After the locked target dies: lock the best remaining candidate, from the same pool as
+        /// SwitchTarget (engaged enemies while in combat, else targets in range and view): the one closest
+        /// to the character. False = nobody left.
+        /// </summary>
+        private bool TryRetargetAfterDeath()
+        {
+            ResolveViewCamera();
+
+            ILockable best = null;
+            float bestDistance = float.MaxValue;
+            foreach (var candidate in GatherSwitchCandidates())
+            {
+                float distance = (candidate.Transform.position - _transformCache.position).sqrMagnitude;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = candidate;
+                }
+            }
+
+            if (best == null) return false;
+            SetTarget(best);
+            return true;
         }
 
         private List<ILockable> GatherSwitchCandidates()
