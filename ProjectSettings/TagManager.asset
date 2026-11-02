@@ -23,8 +23,8 @@ TagManager:
   - 
   - PlayerLimbs
   - DynamicObject
-  - 
-  - 
+  - Ragdoll
+  - PlayerHurtbox
   - 
   - 
   - 

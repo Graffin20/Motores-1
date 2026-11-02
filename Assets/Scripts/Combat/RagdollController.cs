@@ -8,8 +8,10 @@ namespace StarterAssets.Combat
     /// Keeps a ragdoll (built with Unity's Ragdoll Wizard) asleep while the character is alive, and hands the
     /// body over to physics partway through the death animation.
     ///
-    /// Alive: every ragdoll rigidbody is kinematic and its collider is off, so the Animator owns the bones and
-    /// the limb colliders can't push the CharacterController/NavMeshAgent or catch attacks and casts.
+    /// Alive: every ragdoll rigidbody is kinematic, so the Animator owns the bones. With CollidersAsHurtboxes the
+    /// limb colliders stay on and follow the animation as hurtboxes for WeaponTrace; their layer must not collide
+    /// with any CharacterController layer (Physics collision matrix), or the enemy's own arms block it.
+    /// Without it they're off until the ragdoll takes over.
     ///
     /// Death (Health.Died): the death animation plays as usual while bone poses are recorded each frame. At
     /// AE_EnableRagdoll on the death clip (or after RagdollSafetyDelay if the event is missing, or immediately
@@ -24,6 +26,10 @@ namespace StarterAssets.Combat
                  "those joints connect to (the hips). Fill it in if something else under the character has a " +
                  "Rigidbody + Joint that isn't part of the ragdoll.")]
         public List<Rigidbody> Bodies = new();
+
+        [Tooltip("Keep the limb colliders on (kinematic) while alive, as hurtboxes for weapon traces. Off = " +
+                 "colliders only exist once the ragdoll takes over.")]
+        public bool CollidersAsHurtboxes = true;
 
         [Header("Hand-off")]
         [Tooltip("Dev safety fallback only: ragdoll after this many seconds of death if AE_EnableRagdoll never fires.")]
@@ -179,7 +185,7 @@ namespace StarterAssets.Combat
                 body.isKinematic = !active;
                 body.interpolation = active ? RigidbodyInterpolation.Interpolate : RigidbodyInterpolation.None;
             }
-            foreach (var col in _colliders) col.enabled = active;
+            foreach (var col in _colliders) col.enabled = active || CollidersAsHurtboxes;
         }
 
         private List<Rigidbody> FindRagdollBodies()

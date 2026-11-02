@@ -593,18 +593,6 @@ PrefabInstance:
       propertyPath: Target
       value: 
       objectReference: {fileID: 6306220538776723889}
-    - target: {fileID: 2100734043905887101, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 2645738938728199552, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 2805249367060560972, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
     - target: {fileID: 3111559274366538753, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
       propertyPath: rayOrigin
       value: 
@@ -617,50 +605,26 @@ PrefabInstance:
       propertyPath: m_Data.m_SourceObjects.m_Item0.transform
       value: 
       objectReference: {fileID: 6306220538776723889}
-    - target: {fileID: 4549864606845893521, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 5142504271844550091, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 5807502076820487835, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 6797617531068066694, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
+    - target: {fileID: 7047539958920998350, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
+      propertyPath: m_Name
+      value: Sword
       objectReference: {fileID: 0}
     - target: {fileID: 7552796931159022912, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
       propertyPath: GameplayCamera
       value: 
       objectReference: {fileID: 2715013509617830893}
-    - target: {fileID: 7642009280882094810, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 7753221602243952649, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
     - target: {fileID: 8062141035511981134, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
       propertyPath: CombatCamera
       value: 
       objectReference: {fileID: 3869407837301588628}
-    - target: {fileID: 8132630019562857569, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
-    - target: {fileID: 8184325325104575576, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
-      propertyPath: m_Layer
-      value: 15
-      objectReference: {fileID: 0}
     - target: {fileID: 8326153975630724790, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
       propertyPath: lookAtReference
       value: 
       objectReference: {fileID: 5030346356027429545}
+    - target: {fileID: 8326153975630724790, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
+      propertyPath: HittableLayers.m_Bits
+      value: 131072
+      objectReference: {fileID: 0}
     - target: {fileID: 8532270811567733966, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
       propertyPath: m_Name
       value: PlayerArmature
