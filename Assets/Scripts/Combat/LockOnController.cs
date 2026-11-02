@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace StarterAssets.Combat
@@ -18,6 +19,7 @@ namespace StarterAssets.Combat
         private GameObject _activeUIInstance;
         private Transform _transformCache;
         private ThirdPersonController _thirdPersonController;
+        private CombatStateTracker _combatState;
 
         public bool IsLockedOn => IsTargetUsable(_currentTarget);
         public Transform CurrentTargetTransform => IsTargetUsable(_currentTarget) ? _currentTarget.Transform : null;
@@ -38,6 +40,7 @@ namespace StarterAssets.Combat
         {
             _transformCache = transform;
             _thirdPersonController = GetComponent<ThirdPersonController>(); // optional camera source
+            _combatState = GetComponent<CombatStateTracker>();               // optional: null = switch among targets in view
         }
 
         private void Start()
@@ -152,10 +155,76 @@ namespace StarterAssets.Combat
             }
         }
 
+        /// <summary>
+        /// Cycles the lock to the next target, ordered left to right around the player as seen from the
+        /// camera, wrapping at the ends. inputDir.x > 0 = next to the right, below 0 = to the left.
+        ///
+        /// Candidates: while in combat, every enemy currently engaging the player (CombatStateTracker), even
+        /// behind the player, since the locked camera turns to face them. Outside combat (or without a
+        /// tracker) it falls back to the lockable targets in range and in front, like AcquireBestTarget.
+        /// Either way a candidate must be alive, within maxLockRange and in line of sight, otherwise Update
+        /// would drop the lock right after switching.
+        /// </summary>
         public void SwitchTarget(Vector2 inputDir)
         {
-            if (!IsLockedOn) return;
-            // (Switch target logic remains standard)
+            if (!IsLockedOn || Mathf.Approximately(inputDir.x, 0f)) return;
+            ResolveViewCamera();
+
+            var candidates = GatherSwitchCandidates();
+            if (!candidates.Contains(_currentTarget)) candidates.Add(_currentTarget);
+            if (candidates.Count < 2) return;
+
+            candidates.Sort((a, b) => YawFromView(a.Transform).CompareTo(YawFromView(b.Transform)));
+            int index = candidates.IndexOf(_currentTarget);
+            int step = inputDir.x > 0f ? 1 : -1;
+            SetTarget(candidates[(index + step + candidates.Count) % candidates.Count]);
+        }
+
+        private List<ILockable> GatherSwitchCandidates()
+        {
+            var result = new List<ILockable>();
+
+            if (_combatState != null && _combatState.IsInCombat && _combatState.EngagedEnemyCount > 0)
+            {
+                foreach (var enemy in _combatState.EngagedEnemies)
+                {
+                    // Registered as the enemy's EnemyAI component; the ILockable sits on the same object
+                    // or a relative of it.
+                    if (!(enemy is Component component) || component == null) continue;
+                    var target = component.GetComponentInParent<ILockable>() ?? component.GetComponentInChildren<ILockable>();
+                    if (IsSwitchCandidate(target, requireInView: false) && !result.Contains(target)) result.Add(target);
+                }
+                return result;
+            }
+
+            foreach (var hit in Physics.OverlapSphere(_transformCache.position, maxLockRange, targetLayer))
+            {
+                if (hit != null && hit.TryGetComponent<ILockable>(out var target) &&
+                    IsSwitchCandidate(target, requireInView: true) && !result.Contains(target))
+                    result.Add(target);
+            }
+            return result;
+        }
+
+        private bool IsSwitchCandidate(ILockable target, bool requireInView)
+        {
+            if (!IsTargetUsable(target) || target.Transform == _transformCache) return false;
+            if (Vector3.Distance(_transformCache.position, target.Transform.position) > maxLockRange) return false;
+            if (requireInView && _viewCameraTransform != null &&
+                Vector3.Angle(_viewCameraTransform.forward, target.Transform.position - _viewCameraTransform.position) > maxLockAngle)
+                return false;
+            return !HasLineOfSightObstacle(target.Transform);
+        }
+
+        /// <summary>Signed horizontal angle of a target around the player, relative to the camera's
+        /// facing (negative = left). Measured from the player, so targets behind still sort sensibly.</summary>
+        private float YawFromView(Transform target)
+        {
+            Vector3 forward = _viewCameraTransform != null ? _viewCameraTransform.forward : _transformCache.forward;
+            Vector3 toTarget = target.position - _transformCache.position;
+            forward.y = 0f;
+            toTarget.y = 0f;
+            return Vector3.SignedAngle(forward, toTarget, Vector3.up);
         }
 
         private void SetTarget(ILockable newTarget)

@@ -272,6 +272,10 @@ namespace StarterAssets
         {
             _hasAnimator = TryGetComponent(out _animator);
 
+            // Health disables the CharacterController on death; Move() on a disabled controller errors.
+            // Camera rotation (LateUpdate) keeps running so the player can still look around.
+            if (!_controller.enabled) return;
+
             JumpAndGravity();
             GroundedCheck();
             Move();
@@ -302,7 +306,9 @@ namespace StarterAssets
             return lockedOn ? MovementMode.LockedStrafe : MovementMode.Free;
         }
 
-        private bool ShouldLockMovement()
+        /// <summary>True while an action owns the character (hitstun, death, knockback, attack, roll, parry,
+        /// level complete). Public so other systems (e.g. CombatStanceLayer) reuse this one definition.</summary>
+        public bool ShouldLockMovement()
         {
             if (_health != null && (_health.IsHitStunned || _health.IsDead)) return true;
             // A knockback without stagger (e.g. a blocked hit) must still lock locomotion: otherwise

@@ -14,7 +14,7 @@ namespace StarterAssets.Combat
     /// flicker the combat camera back and forth.
     ///
     /// Enemies are tracked as a SET, not a bool: with several pursuers, one giving up must not end
-    /// combat while another is still attacking. The set can also serve as a lock-on candidate pool later.
+    /// combat while another is still attacking. The set is also LockOnController's candidate pool for switching targets.
     /// </summary>
     public class CombatStateTracker : MonoBehaviour
     {
@@ -34,6 +34,10 @@ namespace StarterAssets.Combat
 
         /// <summary>Number of enemies currently registered as engaging the player.</summary>
         public int EngagedEnemyCount => _engagedEnemies.Count;
+
+        /// <summary>The enemies currently engaging the player (LockOnController cycles through these).
+        /// May contain destroyed objects until the next Update prunes them; check before use.</summary>
+        public IReadOnlyCollection<UnityEngine.Object> EngagedEnemies => _engagedEnemies;
 
         /// <summary>Raised with the new value whenever IsInCombat changes.</summary>
         public event Action<bool> CombatStateChanged;
