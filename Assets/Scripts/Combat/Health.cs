@@ -54,6 +54,10 @@ namespace StarterAssets.Combat
         /// body away from it).</summary>
         public event System.Action<Vector3> Died;
 
+        /// <summary>Raised after every resolved hit (not on Ignored, i.e. already dead) with the hit and its
+        /// outcome. HitFeedback spawns FX / hit-stop / camera shake from it.</summary>
+        public event System.Action<HitInfo, HitResult> HitReceived;
+
         /// <summary>True during any stagger — a regular hit reaction, being parried, or a guard break
         /// (see Stagger()). Everything that refuses to act while stunned reads this, so new stagger
         /// sources are gated automatically.</summary>
@@ -135,6 +139,13 @@ namespace StarterAssets.Combat
         /// Returns the outcome so the attacker can react (MeleeCombatController staggers itself on Parried).
         /// </summary>
         public HitResult TakeDamage(HitInfo hit)
+        {
+            HitResult result = ResolveHit(hit);
+            if (result != HitResult.Ignored) HitReceived?.Invoke(hit, result);
+            return result;
+        }
+
+        private HitResult ResolveHit(HitInfo hit)
         {
             if (IsDead) return HitResult.Ignored;
 

@@ -11,7 +11,7 @@ public struct HitInfo
     public float KnockbackDistanceMultiplier;
     public float KnockbackDurationMultiplier;
 
-    /// <summary>The attacker's root GameObject, or null if the hit has no attacker (traps, hazards...).</summary>
+    /// <summary>The attacker's character GameObject (the one with its MeleeCombatController), or null if the hit has no attacker (traps, hazards...).</summary>
     public GameObject Attacker;
 
     /// <summary>True if the attacker's clip opened a parry window (AE_ParryWindowOpen) during this attack.
@@ -21,6 +21,14 @@ public struct HitInfo
     public float ParryWindowOpenTime;
     /// <summary>Time.time the parry window closed, or the hit time if it was still open when the hit landed.</summary>
     public float ParryWindowCloseTime;
+
+    /// <summary>True if ContactPoint/ContactDirection are set (weapon trace or hitbox sphere hits). Hits
+    /// without one (hazards...) leave it false; hit FX then fall back to the defender's chest.</summary>
+    public bool HasContact;
+    /// <summary>World point where the weapon touched the defender's collider.</summary>
+    public Vector3 ContactPoint;
+    /// <summary>Direction the weapon was moving at the contact (normalized), e.g. to aim sparks along the swing.</summary>
+    public Vector3 ContactDirection;
 
     public HitInfo(float damage, Vector3 sourcePosition,
                    float knockbackDistanceMultiplier = 1f, float knockbackDurationMultiplier = 1f)
@@ -33,6 +41,9 @@ public struct HitInfo
         IsParryable = false;
         ParryWindowOpenTime = 0f;
         ParryWindowCloseTime = 0f;
+        HasContact = false;
+        ContactPoint = Vector3.zero;
+        ContactDirection = Vector3.zero;
     }
 }
 

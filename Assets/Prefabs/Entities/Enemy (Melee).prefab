@@ -3407,6 +3407,7 @@ GameObject:
   - component: {fileID: 123831642033018763}
   - component: {fileID: 5096197736139240735}
   - component: {fileID: 7562707700721277508}
+  - component: {fileID: 4355248939292223947}
   m_Layer: 7
   m_Name: Enemy (Melee)
   m_TagString: Untagged
@@ -3639,3 +3640,41 @@ MonoBehaviour:
   RagdollSafetyDelay: 3
   KillPushSpeed: 2
   KillPushUpward: 0.3
+--- !u!114 &4355248939292223947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8776521118454666863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdd7e86871b79f149a177ec4ecbf129a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.HitFeedback
+  Hit:
+    Fx: {fileID: 1229420507550489884, guid: 39ceb4ddbac1d994292efe31aa7012dc, type: 3}
+    HitStop: 0.06
+    Shake: 0.3
+  Killed:
+    Fx: {fileID: 0}
+    HitStop: 0.12
+    Shake: 0.6
+  Blocked:
+    Fx: {fileID: 0}
+    HitStop: 0.04
+    Shake: 0.2
+  GuardBroken:
+    Fx: {fileID: 0}
+    HitStop: 0.1
+    Shake: 0.5
+  Parried:
+    Fx: {fileID: 0}
+    HitStop: 0.15
+    Shake: 0.6
+  Invulnerable:
+    Fx: {fileID: 0}
+    HitStop: 0
+    Shake: 0
+  FxLifetime: 1
+  FallbackFxOffset: {x: 0, y: 1.2, z: 0}
