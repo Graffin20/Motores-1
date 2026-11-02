@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 5323977443949164667}
   - component: {fileID: 7916450829168408415}
   - component: {fileID: 6906330486889563804}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigLeftUpLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -466,7 +466,7 @@ GameObject:
   - component: {fileID: 7512574027228169825}
   - component: {fileID: 4072927562641186911}
   - component: {fileID: 1128284521407334033}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigLeftForeArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -723,7 +723,7 @@ GameObject:
   - component: {fileID: 3396339839977751083}
   - component: {fileID: 7998537454623728524}
   - component: {fileID: 6155277869235471298}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigHips
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -808,7 +808,7 @@ GameObject:
   - component: {fileID: 488158185006076352}
   - component: {fileID: 8434438934577265054}
   - component: {fileID: 5443483303484479769}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigLeftLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -970,7 +970,7 @@ GameObject:
   - component: {fileID: 5696176271786512709}
   - component: {fileID: 8501187055159255669}
   - component: {fileID: 8637726314703629270}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigRightArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1386,7 +1386,7 @@ GameObject:
   - component: {fileID: 6398345199966666945}
   - component: {fileID: 2906719900563014875}
   - component: {fileID: 6754881583181904572}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigRightUpLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2028,7 +2028,7 @@ GameObject:
   - component: {fileID: 2985152616639398447}
   - component: {fileID: 3332239085161630017}
   - component: {fileID: 4843493336548337204}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigRightForeArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2191,7 +2191,7 @@ GameObject:
   - component: {fileID: 4785750138316890343}
   - component: {fileID: 1784090862691240294}
   - component: {fileID: 8391124173765538827}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigSpine2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2386,7 +2386,7 @@ GameObject:
   - component: {fileID: 5863107746510041690}
   - component: {fileID: 6906995621292356}
   - component: {fileID: 148822354119429022}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigHead
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2674,7 +2674,7 @@ GameObject:
   - component: {fileID: 4323132432031622904}
   - component: {fileID: 5181811675989224667}
   - component: {fileID: 2138244805670828025}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigLeftArm
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2932,7 +2932,7 @@ GameObject:
   - component: {fileID: 5538146333104082723}
   - component: {fileID: 5663219636169357429}
   - component: {fileID: 2143147294785232287}
-  m_Layer: 0
+  m_Layer: 16
   m_Name: mixamorigRightLeg
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -3324,6 +3324,7 @@ GameObject:
   - component: {fileID: 7226366377185473479}
   - component: {fileID: 123831642033018763}
   - component: {fileID: 5096197736139240735}
+  - component: {fileID: 7562707700721277508}
   m_Layer: 7
   m_Name: Enemy (Melee)
   m_TagString: Untagged
@@ -3520,7 +3521,7 @@ MonoBehaviour:
   HitAnimationTrigger: Hit
   HitStunSafetyDuration: 1
   DieAnimationTrigger: Die
-  DestroyDelayAfterDeath: 5
+  DestroyDelayAfterDeath: 15
   KnockbackDistance: 1
   KnockbackDuration: 0.2
 --- !u!114 &5096197736139240735
@@ -3535,3 +3536,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bfdd6fb4e65f70e47b5392f4999c41d0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DamageableLockTarget
+--- !u!114 &7562707700721277508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8776521118454666863}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 558d5d6e0ad9ade4c9a2a85b27c62342, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.RagdollController
+  Bodies: []
+  RagdollSafetyDelay: 3
+  KillPushSpeed: 2
+  KillPushUpward: 0.3
