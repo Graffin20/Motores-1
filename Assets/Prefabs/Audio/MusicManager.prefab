@@ -1,0 +1,61 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1030456121641909347
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4376350128588895621}
+  - component: {fileID: 2463567357641362932}
+  m_Layer: 0
+  m_Name: MusicManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4376350128588895621
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030456121641909347}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2463567357641362932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1030456121641909347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: deceed27c03dc014ba17a8b3cb8d46e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AdaptiveMusic
+  stems:
+  - {fileID: 8300000, guid: 0a20a7aef56fe184ebfcfde67faa308b, type: 3}
+  - {fileID: 8300000, guid: 9a84e12a30a3553499c4322fd8ca40fd, type: 3}
+  - {fileID: 8300000, guid: 1b9bee19d1e76074eb6f0aec6020cd92, type: 3}
+  - {fileID: 8300000, guid: 4b63f810c4588c144b6e663af042cab0, type: 3}
+  - {fileID: 8300000, guid: 84f4743b0d60dd94490111e7c392c56d, type: 3}
+  groups:
+  - {fileID: -5847989179443406522, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
+  - {fileID: -8971704412380255532, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
+  - {fileID: -7676855894567559202, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
+  - {fileID: 5327317391200786772, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
+  - {fileID: 7352428059987780123, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
+  exploration: {fileID: 24500006, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
+  combat: {fileID: 6540275895756610579, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
+  win: {fileID: 1168177042387723714, guid: 993d502cc2bca0347930a08b2fd8d12a, type: 2}
