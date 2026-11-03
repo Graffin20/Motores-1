@@ -26,7 +26,9 @@ Material:
   m_ModifiedSerializedProperties: 18
   m_ValidKeywords:
   - _ALPHAPREMULTIPLY_ON
+  - _ALPHATEST_ON
   - _NORMALMAP
+  - _RECEIVE_SHADOWS_OFF
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords: []
   m_LightmapFlags: 4
@@ -61,8 +63,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _AlphaClip: 1
     - _BlendModePreserveSpecular: 1
     - _BumpScale: 0
+    - _Cutoff: 0.164
     - _Depth_Bias_Alpha: 0.5
     - _Depth_Contrast: 0.9
     - _Distortion: 1
@@ -70,7 +74,7 @@ Material:
     - _DstBlendAlpha: 10
     - _Normal_Strength: 0.01
     - _QueueControl: 0
-    - _ReceiveShadows: 1
+    - _ReceiveShadows: 0
     - _Rim_AO: 1
     - _Rim_Falloff: 3.59
     - _Rim_Normal_Mask: 0.78
@@ -82,8 +86,8 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 0
     m_Colors:
-    - _BaseColor: {r: 0.5086774, g: 0.6698113, b: 0.6698113, a: 1}
-    - _Color: {r: 0.50867736, g: 0.6698113, b: 0.6698113, a: 1}
+    - _BaseColor: {r: 0.5086773, g: 0.6698113, b: 0.6698113, a: 0.24705882}
+    - _Color: {r: 0.50867724, g: 0.6698113, b: 0.6698113, a: 0.24705882}
     - _Deep_Water_Color: {r: 0, g: 0.043137237, b: 0.16078427, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _Rim_Movement: {r: 0.03, g: 0.044, b: 0, a: 0}
