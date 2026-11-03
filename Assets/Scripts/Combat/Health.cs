@@ -50,6 +50,14 @@ namespace StarterAssets.Combat
 
         public bool IsDead { get; private set; }
 
+        /// <summary>Raised once on death with the killing hit's SourcePosition (RagdollController pushes the
+        /// body away from it).</summary>
+        public event System.Action<Vector3> Died;
+
+        /// <summary>Raised after every resolved hit (not on Ignored, i.e. already dead) with the hit and its
+        /// outcome. HitFeedback spawns FX / hit-stop / camera shake from it.</summary>
+        public event System.Action<HitInfo, HitResult> HitReceived;
+
         /// <summary>True during any stagger — a regular hit reaction, being parried, or a guard break
         /// (see Stagger()). Everything that refuses to act while stunned reads this, so new stagger
         /// sources are gated automatically.</summary>
@@ -132,6 +140,13 @@ namespace StarterAssets.Combat
         /// </summary>
         public HitResult TakeDamage(HitInfo hit)
         {
+            HitResult result = ResolveHit(hit);
+            if (result != HitResult.Ignored) HitReceived?.Invoke(hit, result);
+            return result;
+        }
+
+        private HitResult ResolveHit(HitInfo hit)
+        {
             if (IsDead) return HitResult.Ignored;
 
             if (IsInvulnerable)
@@ -184,7 +199,7 @@ namespace StarterAssets.Combat
 
             if (CurrentHealth <= 0f)
             {
-                Die();
+                Die(hit.SourcePosition);
                 return HitResult.Killed;
             }
 
@@ -264,7 +279,7 @@ namespace StarterAssets.Combat
             CurrentHealth = Mathf.Min(CurrentHealth + heal, MaxHealth);
         }
 
-        private void Die()
+        private void Die(Vector3 killSourcePosition)
         {
             IsDead = true;
             _isHitStunned = false;
@@ -284,15 +299,14 @@ namespace StarterAssets.Combat
 
             if (TryGetComponent<UnityEngine.AI.NavMeshAgent>(out var agent)) agent.enabled = false;
 
-            // Deliberately NOT calling GetComponent<Collider>() here — CharacterController IS a
-            // Collider, so col.enabled = false disables movement AND collision together, and
-            // anything still calling _controller.Move() (there shouldn't be, now that the
-            // scripts above are disabled) would throw. If you want the corpse to stop blocking
-            // navigation/physics, turn off collision WITHOUT disabling the whole component:
-            if (TryGetComponent<CharacterController>(out var characterController))
-            {
-                characterController.detectCollisions = false;
-            }
+            // Disable the CharacterController so the body stops blocking characters, casts and the
+            // ragdoll. Safe only because nothing calls Move() on it any more: the scripts above are off,
+            // the death knockback is stopped (TickKnockback would Move() for a few more frames), and
+            // ThirdPersonController (kept running for the camera) skips movement while it's disabled.
+            _isBeingKnockedBack = false;
+            if (_controller != null) _controller.enabled = false;
+
+            Died?.Invoke(killSourcePosition);
 
             Destroy(gameObject, DestroyDelayAfterDeath);
         }

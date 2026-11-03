@@ -272,6 +272,10 @@ namespace StarterAssets
         {
             _hasAnimator = TryGetComponent(out _animator);
 
+            // Health disables the CharacterController on death; Move() on a disabled controller errors.
+            // Camera rotation (LateUpdate) keeps running so the player can still look around.
+            if (!_controller.enabled) return;
+
             JumpAndGravity();
             GroundedCheck();
             Move();
@@ -302,7 +306,9 @@ namespace StarterAssets
             return lockedOn ? MovementMode.LockedStrafe : MovementMode.Free;
         }
 
-        private bool ShouldLockMovement()
+        /// <summary>True while an action owns the character (hitstun, death, knockback, attack, roll, parry,
+        /// level complete). Public so other systems (e.g. CombatStanceLayer) reuse this one definition.</summary>
+        public bool ShouldLockMovement()
         {
             if (_health != null && (_health.IsHitStunned || _health.IsDead)) return true;
             // A knockback without stagger (e.g. a blocked hit) must still lock locomotion: otherwise
@@ -456,8 +462,9 @@ namespace StarterAssets
         /// - StrafeBlend (float 0..1, damped): 1 while locked on — weight of the strafe tree when free and
         ///   strafe trees are nested in ONE locomotion state (see Tools > Animator > Merge Strafe State Into
         ///   Locomotion), which keeps every transition wired to that single state.
-        /// - StrafeX / StrafeY (float, m/s, same scale as Speed): the move velocity in the character's local
-        ///   space. +X = right, -X = left, +Y = forward, -Y = backward — the axes of a 2D blend tree.
+        /// - StrafeX / StrafeY (float, normalized: magnitude 0.5 = strafe walk, 1 = strafe sprint): the move
+        ///   direction in the character's local space. +X = right, -X = left, +Y = forward, -Y = backward —
+        ///   the axes of a 2D blend tree (walk clips at 0.5, sprint clips at 1).
         /// </summary>
         private void UpdateLocomotionAnimator(Vector3 moveDirection, float inputMagnitude)
         {
@@ -480,10 +487,29 @@ namespace StarterAssets
 
             if (_hasStrafeXParam || _hasStrafeYParam)
             {
-                Vector3 localVelocity = transform.InverseTransformDirection(moveDirection) * _animationBlend;
+                Vector3 localVelocity = transform.InverseTransformDirection(moveDirection) * GetNormalizedStrafeMagnitude();
                 if (_hasStrafeXParam) _animator.SetFloat(_animIDStrafeX, localVelocity.x, StrafeAnimationDampTime, Time.deltaTime);
                 if (_hasStrafeYParam) _animator.SetFloat(_animIDStrafeY, localVelocity.z, StrafeAnimationDampTime, Time.deltaTime);
             }
+        }
+
+        /// <summary>
+        /// Maps the current locomotion speed onto the strafe tree's scale: 0 = idle, 0.5 = StrafeSpeed (walk),
+        /// 1 = StrafeSpeed * StrafeSprintMultiplier (sprint). Piecewise-linear rather than speed / max so walk
+        /// lands exactly on 0.5 whatever the multiplier is; the in-between values keep the acceleration ramp
+        /// smooth. Clamped to 1 because in Free mode the speed can exceed the strafe sprint (the values still
+        /// matter there while StrafeBlend crossfades).
+        /// </summary>
+        private float GetNormalizedStrafeMagnitude()
+        {
+            float walkSpeed = StrafeSpeed;
+            float sprintSpeed = StrafeSpeed * StrafeSprintMultiplier;
+
+            if (walkSpeed <= 0f) return 0f;
+            if (_animationBlend <= walkSpeed) return 0.5f * _animationBlend / walkSpeed;
+            if (sprintSpeed <= walkSpeed) return 0.5f; // multiplier <= 1: no faster sprint speed to map to 1
+
+            return Mathf.Min(1f, 0.5f + 0.5f * (_animationBlend - walkSpeed) / (sprintSpeed - walkSpeed));
         }
 
         private void JumpAndGravity()

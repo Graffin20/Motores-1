@@ -18,6 +18,11 @@ namespace StarterAssets.Combat
         [Header("Target Switching Sensitivity")]
         [Tooltip("Threshold for stick flick or mouse delta to trigger a target switch.")]
         public float targetSwitchThreshold = 0.5f;
+        [Tooltip("Minimum seconds between two switches, so a fast scroll or a wiggled stick doesn't skip " +
+                 "through several targets at once.")]
+        public float targetSwitchCooldown = 0.15f;
+
+        private float _lastTargetSwitchTime = float.NegativeInfinity;
 
         public bool AttackRequested { get; private set; }
         public bool HeavyAttackRequested { get; private set; }
@@ -96,13 +101,22 @@ namespace StarterAssets.Combat
             if (value.isPressed) LockOnRequested = true;
         }
 
+        // StarterAssets.inputactions (the asset PlayerArmature's PlayerInput uses) names the action
+        // "SwitchTargets"; InputSystem_Actions names it "SwitchTarget". Send Messages calls On<ActionName>,
+        // so accept both.
+        public void OnSwitchTargets(InputValue value) => OnSwitchTarget(value);
+
+        /// <summary>Mouse scroll (Y) or right stick flick (X). Up/right = next target (+1), down/left =
+        /// previous (-1), reported as TargetSwitchDirection.x.</summary>
         public void OnSwitchTarget(InputValue value)
         {
             var input = value.Get<Vector2>();
-            if (Mathf.Abs(input.x) > targetSwitchThreshold)
-            {
-                TargetSwitchDirection = new Vector2(Mathf.Sign(input.x), 0f);
-            }
+            float axis = Mathf.Abs(input.x) >= Mathf.Abs(input.y) ? input.x : input.y;
+            if (Mathf.Abs(axis) <= targetSwitchThreshold) return;
+            if (Time.unscaledTime - _lastTargetSwitchTime < targetSwitchCooldown) return;
+
+            _lastTargetSwitchTime = Time.unscaledTime;
+            TargetSwitchDirection = new Vector2(Mathf.Sign(axis), 0f);
         }
 #endif
 

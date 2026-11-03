@@ -136,5 +136,6 @@
 TerrainData*.asset             filter=lfs diff=lfs merge=lfs -text
 Terrain_*.asset                filter=lfs diff=lfs merge=lfs -text
 New[[:space:]]Terrain*.asset   filter=lfs diff=lfs merge=lfs -text
+Terreno*.asset                 filter=lfs diff=lfs merge=lfs -text
 LightingData.asset             filter=lfs diff=lfs merge=lfs -text
 NavMesh-*.asset                filter=lfs diff=lfs merge=lfs -text

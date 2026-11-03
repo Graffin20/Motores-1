@@ -21,6 +21,9 @@ namespace StarterAssets.Combat
         public float KnockbackDurationMultiplier = 1f;
         [Tooltip("Distance to push the character forward during this attack stage.")]
         public float ForwardPushDistance = 1f;
+        [Tooltip("Index into MeleeCombatController.WeaponTraces traced during this stage's Active window " +
+                 "(e.g. 0 = right hand, 1 = left hand). -1, or no traces assigned = the hitbox sphere at ApplyHitboxDamage.")]
+        public int WeaponTraceIndex = 0;
     }
 
     /// <summary>
@@ -87,9 +90,14 @@ namespace StarterAssets.Combat
         public float HeavyKnockbackDurationMultiplier = 1.5f;
         [Tooltip("Distance to push the character forward during the heavy attack.")]
         public float HeavyForwardPushDistance = 2f;
+        [Tooltip("Index into WeaponTraces for the heavy attack. -1 = the hitbox sphere.")]
+        public int HeavyWeaponTraceIndex = 0;
 
         [Header("Hit Detection")]
-        [Tooltip("Local offset from this transform for the hitbox sphere, e.g. out in front of the character.")]
+        [Tooltip("Weapon capsules traced from AE_AttackActive to AE_AttackRecovery (the sword, an enemy's hands). " +
+                 "Each attack picks one by index; empty = every attack uses the hitbox sphere below.")]
+        public WeaponTrace[] WeaponTraces = new WeaponTrace[0];
+        [Tooltip("Fallback hitbox for attacks without a weapon trace: local offset from this transform, applied on ApplyHitboxDamage.")]
         public Vector3 HitboxOffset = new Vector3(0f, 1f, 1f);
         public float HitboxRadius = 0.75f;
         public LayerMask HittableLayers;
@@ -133,6 +141,12 @@ namespace StarterAssets.Combat
         private int _comboIndex = -1;
         private bool _isHeavyAttack;
         private bool _hasDamagedThisSwing;
+
+        // Weapon trace of the current swing (null = none / sphere attack). _traceFinalStep makes the
+        // LateUpdate after AE_AttackRecovery sweep once more, so the last frame's motion isn't lost.
+        private WeaponTrace _activeTrace;
+        private bool _traceFinalStep;
+        private readonly System.Collections.Generic.List<TraceHit> _traceHits = new();
 
         // buffered next action, queued during Recovery
         private bool _bufferedAttack;
@@ -426,6 +440,14 @@ namespace StarterAssets.Combat
         {
             if (_phase != AttackPhase.Windup) return;
             EnterPhase(AttackPhase.Active);
+
+            _activeTrace = CurrentWeaponTrace();
+            _traceFinalStep = false;
+            if (_activeTrace != null)
+            {
+                _damagedThisSwing.Clear(); // one hit per target for the whole window
+                _activeTrace.BeginTrace();
+            }
         }
 
         /// <summary>Place on the clip at the moment the character should begin lunging forward. The float
@@ -445,6 +467,7 @@ namespace StarterAssets.Combat
         public void AE_AttackRecovery()
         {
             if (_phase != AttackPhase.Active) return;
+            if (_activeTrace != null) _traceFinalStep = true;
             EnterPhase(AttackPhase.Recovery);
         }
 
@@ -550,6 +573,7 @@ namespace StarterAssets.Combat
             _canCancelIntoRoll = false;
             ResetParryWindow();
             ClearForwardPush();
+            StopTrace();
         }
 
         /// <summary>Place at the very end of the clip — the attack is fully finished and the next action is allowed.</summary>
@@ -588,48 +612,103 @@ namespace StarterAssets.Combat
         }
 
         /// <summary>
-        /// Place on the clip's actual hit frame(s), within the Active window.
+        /// Place on the clip's actual hit frame(s), within the Active window. Only used by attacks without a
+        /// weapon trace (the sphere fallback); a traced attack ignores it, so clips can keep the event.
         /// </summary>
         public void ApplyHitboxDamage()
         {
             if (_phase != AttackPhase.Active || _hasDamagedThisSwing) return;
+            if (CurrentWeaponTrace() != null) return;
 
-            Vector3 origin = transform.TransformPoint(HitboxOffset);
-            Collider[] hits = Physics.OverlapSphere(origin, HitboxRadius, HittableLayers);
+            Vector3 center = transform.TransformPoint(HitboxOffset);
+            _traceHits.Clear();
+            foreach (var hit in Physics.OverlapSphere(center, HitboxRadius, HittableLayers))
+            {
+                // No blade here: contact = the collider's closest point to the sphere's centre.
+                _traceHits.Add(new TraceHit { Collider = hit, Point = WeaponTrace.ContactPoint(hit, center, center), Direction = transform.forward });
+            }
+            _damagedThisSwing.Clear();
+            ResolveHits(_traceHits, logMisses: true);
+            _hasDamagedThisSwing = true;
+        }
 
+        // LateUpdate: after the Animator has posed the weapon this frame.
+        private void LateUpdate()
+        {
+            if (_activeTrace == null) return;
+            if (_phase != AttackPhase.Active && !_traceFinalStep)
+            {
+                StopTrace(); // force-advanced/cancelled without AE_AttackRecovery
+                return;
+            }
+
+            _traceHits.Clear();
+            _activeTrace.Sweep(HittableLayers, _traceHits);
+            if (_traceFinalStep) StopTrace();
+            if (_traceHits.Count > 0) ResolveHits(_traceHits, logMisses: false);
+        }
+
+        private void StopTrace()
+        {
+            if (_activeTrace != null) _activeTrace.EndTrace();
+            _activeTrace = null;
+            _traceFinalStep = false;
+        }
+
+        /// <summary>The weapon trace the current attack uses, or null for the sphere.</summary>
+        private WeaponTrace CurrentWeaponTrace()
+        {
+            if (_phase == AttackPhase.Idle) return null;
+            int index = _isHeavyAttack ? HeavyWeaponTraceIndex
+                      : _comboIndex >= 0 && _comboIndex < ComboStages.Length ? ComboStages[_comboIndex].WeaponTraceIndex
+                      : -1;
+            if (index < 0 || WeaponTraces == null || index >= WeaponTraces.Length) return null;
+            var trace = WeaponTraces[index];
+            return trace != null && trace.IsValid ? trace : null;
+        }
+
+        /// <summary>
+        /// Damages every new IDamageable among the colliders (once per target per swing, via _damagedThisSwing).
+        /// The IDamageable is looked up in the collider's parents, so limb hurtboxes (ragdoll colliders) reach
+        /// the Health on the character's root. If any target parried, this character staggers afterwards.
+        /// </summary>
+        private void ResolveHits(System.Collections.Generic.List<TraceHit> hits, bool logMisses)
+        {
             float damage = _isHeavyAttack ? HeavyAttackDamage : ComboStages[_comboIndex].Damage;
             float knockbackDistanceMultiplier = _isHeavyAttack ? HeavyKnockbackDistanceMultiplier : ComboStages[_comboIndex].KnockbackDistanceMultiplier;
             float knockbackDurationMultiplier = _isHeavyAttack ? HeavyKnockbackDurationMultiplier : ComboStages[_comboIndex].KnockbackDurationMultiplier;
 
             var hitInfo = new HitInfo(damage, transform.position, knockbackDistanceMultiplier, knockbackDurationMultiplier)
             {
-                Attacker = transform.root.gameObject,
+                // This object (the character), not transform.root: characters may be grouped under a parent.
+                Attacker = gameObject,
                 IsParryable = _parryWindowOpenedThisAttack,
                 ParryWindowOpenTime = _parryWindowOpenTime,
-                // A window still open at the hit counts presses up to this moment.
+                // A window still open at the hit counts presses up to this moment (the moment of contact).
                 ParryWindowCloseTime = Mathf.Min(_parryWindowCloseTime, Time.time),
             };
 
             bool wasParried = false;
-            _damagedThisSwing.Clear();
-
-            foreach (var hit in hits)
+            foreach (var traceHit in hits)
             {
-                if (hit.transform.root == transform.root) continue; // don't hit self
+                Collider hit = traceHit.Collider;
+                if (hit == null || hit.transform.IsChildOf(transform)) continue; // own capsule/limbs/weapon
 
-                if (hit.TryGetComponent<IDamageable>(out var damageable))
+                var damageable = hit.GetComponentInParent<IDamageable>();
+                if (damageable == null)
                 {
-                    if (!_damagedThisSwing.Add(damageable)) continue; // same target, another collider
+                    if (logMisses) Debug.Log($"{name} hit {hit.name} for {damage} damage, but it has no IDamageable component.");
+                    continue;
+                }
+                if (!_damagedThisSwing.Add(damageable)) continue; // already hit this swing (another limb/step)
 
-                    if (damageable.TakeDamage(hitInfo) == HitResult.Parried) wasParried = true;
-                }
-                else
-                {
-                    Debug.Log($"{name} hit {hit.name} for {damage} damage, but it has no IDamageable component.");
-                }
+                // Per-target copy: each target gets its own contact point (first step that touched it).
+                var targetHit = hitInfo;
+                targetHit.HasContact = true;
+                targetHit.ContactPoint = traceHit.Point;
+                targetHit.ContactDirection = traceHit.Direction;
+                if (damageable.TakeDamage(targetHit) == HitResult.Parried) wasParried = true;
             }
-
-            _hasDamagedThisSwing = true;
 
             // After the loop, not inside it: the stagger cancels this attack (ForceCancelAttack), and
             // every target caught by this same swing should still be resolved with its data.

@@ -85,6 +85,7 @@ namespace StarterAssets.Combat
         private int _blockBoolHash;
         private int _parryTriggerHash;
         private int _blockLayerIndex = -1;
+        private IBlockReadiness[] _readiness;
 
         private bool _wasBlockHeld;
         // Time.time of the most recent block PRESS made while blocking was allowed. Only a press can
@@ -98,6 +99,10 @@ namespace StarterAssets.Combat
         private readonly HashSet<Health> _pushedThisParry = new();
 
         public bool IsBlocking { get; private set; }
+
+        /// <summary>Block is held and nothing but an IBlockReadiness (e.g. a sheathed sword) is stopping it.
+        /// SwordHolster reads this to draw the sword first.</summary>
+        public bool IsBlockRequested { get; private set; }
 
         /// <summary>True from a successful parry until AE_ParryEnd: the parry animation is playing and the
         /// character is locked out (ThirdPersonController.ShouldLockMovement, attack and roll all check it).</summary>
@@ -114,6 +119,7 @@ namespace StarterAssets.Combat
             _combat = GetComponent<MeleeCombatController>();   // optional — null means attacking never prevents blocking
             _roll = GetComponent<RollController>();            // optional — null means rolling never prevents blocking
             _hasAnimator = TryGetComponent(out _animator);
+            _readiness = GetComponents<IBlockReadiness>();     // optional — none means always ready
             _blockBoolHash = Animator.StringToHash(BlockAnimatorBool);
             _parryTriggerHash = Animator.StringToHash(ParryAnimationTrigger);
 
@@ -147,6 +153,9 @@ namespace StarterAssets.Combat
             if (_inputSource == null) return;
 
             bool held = _inputSource.BlockHeld;
+            IsBlockRequested = held && CanBlockIgnoringReadiness();
+            // Not ready (sword still being drawn) = not CanBlock, so the press isn't recorded below: a block
+            // started from a sheathed sword can never parry, it only becomes a held block once drawn.
             bool canBlock = CanBlock();
 
             // Rising edge of the INPUT, not of IsBlocking: a block held through an attack becomes
@@ -162,6 +171,14 @@ namespace StarterAssets.Combat
         /// mid-roll. Attack/roll already refuse to start while blocking, so this makes the states
         /// mutually exclusive in both directions.</summary>
         private bool CanBlock()
+        {
+            if (!CanBlockIgnoringReadiness()) return false;
+            foreach (var readiness in _readiness)
+                if (!readiness.IsReadyToBlock) return false;
+            return true;
+        }
+
+        private bool CanBlockIgnoringReadiness()
         {
             if (_health != null && (_health.IsHitStunned || _health.IsDead)) return false;
             if (_isParrying) return false; // also keeps the Block layer blended out so the Parry clip shows
