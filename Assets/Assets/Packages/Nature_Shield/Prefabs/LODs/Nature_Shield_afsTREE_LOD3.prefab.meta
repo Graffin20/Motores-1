@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 190f17ede02f2c84d92c389dfd503f22
+labels:
+- Weapon
+timeCreated: 1429218256
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: nature_shield
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Prefabs/LODs/Nature_Shield_afsTREE_LOD3.prefab
+  uploadId: 218476

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fb66cb8d95402944e962a87f2bd09a51
+timeCreated: 1426993522
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Models/Materials/Nature_Shield_diffuse.mat
+  uploadId: 218476

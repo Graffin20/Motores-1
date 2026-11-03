@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 3dffcffb2b8be3e48ad24d919e659ec8
+timeCreated: 1429213719
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: nature_shield
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Materials/Nature_Shield_treecreator_leaf_LOD4.mat
+  uploadId: 218476
