@@ -452,6 +452,7 @@ MonoBehaviour:
     m_Bits: 262144
   ParriedAnimationTrigger: Parried
   ParriedStaggerSafetyDuration: 1.5
+  SwingSfx: {fileID: 0}
   AttackPushDuration: 0.3
   lookAtReference: {fileID: 0}
   TrackTargetDuringWindup: 1
@@ -471,10 +472,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df46f4d120051a44b95d5bb92c012a23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.Health
-  <MaxHealth>k__BackingField: 500
+  <MaxHealth>k__BackingField: 300
   HitAnimationTrigger: Hit
   HitStunSafetyDuration: 1
   StaggerOnPlainHits: 0
+  HurtSfx: {fileID: 0}
+  DeathSfx: {fileID: 0}
   DieAnimationTrigger: Die
   DestroyDelayAfterDeath: 15
   CountsAsKill: 0
