@@ -78,6 +78,13 @@ namespace StarterAssets
 			sprint = newSprintState;
 		}
 
+		// Also on Start: OnApplicationFocus doesn't fire when a scene is loaded (from a menu, or a restart),
+		// and the cursor state is global, so the level would otherwise keep the previous scene's free cursor.
+		private void Start()
+		{
+			SetCursorState(cursorLocked);
+		}
+
 		private void OnApplicationFocus(bool hasFocus)
 		{
 			SetCursorState(cursorLocked);
@@ -86,6 +93,8 @@ namespace StarterAssets
 		private void SetCursorState(bool newState)
 		{
 			Cursor.lockState = newState ? CursorLockMode.Locked : CursorLockMode.None;
+			// Explicit: a cursor revealed by a menu stays visible after a scene load unless it is hidden again.
+			Cursor.visible = !newState;
 		}
 	}
 	

@@ -19,7 +19,7 @@ using UnityEngine;
 /// </summary>
 public static class MergeStrafeIntoLocomotion
 {
-    private const string DefaultControllerPath = "Assets/Assets/Animations/Animators/PlayerAnimator.controller";
+    private const string DefaultControllerPath = "Assets/Animations/Animators/PlayerAnimator.controller";
     private const string LocomotionStateName = "Idle Walk Run Blend";
     private const string StrafeBlendParameter = "StrafeBlend";
 
