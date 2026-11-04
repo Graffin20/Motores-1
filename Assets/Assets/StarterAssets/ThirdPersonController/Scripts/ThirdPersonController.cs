@@ -48,6 +48,7 @@ namespace StarterAssets
         public AudioClip LandingAudioClip;
         public AudioClip[] FootstepAudioClips;
         [Range(0, 1)] public float FootstepAudioVolume = 0.5f;
+        public PlayerFootsteps Footsteps;
 
         [Space(10)]
         [Tooltip("The height the player can jump")]
@@ -591,9 +592,15 @@ namespace StarterAssets
 
         private void OnFootstep(AnimationEvent animationEvent)
         {
+
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
-                if (AudioFootsteps != null)
+                if (Footsteps != null)
+                {
+                    bool running = _speed > MoveSpeed + 0.5f;
+                    Footsteps.Footstep(running);
+                }
+                else if (AudioFootsteps != null)
                     AudioFootsteps.Play();
                 if (AudioFoley != null)
                     AudioFoley.Play();

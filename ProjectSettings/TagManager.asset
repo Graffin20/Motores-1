@@ -14,11 +14,11 @@ TagManager:
   - UI
   - Player
   - Enemies
-  - NoPintar
+  - 
   - Terrain
   - Pintar
   - Pickup
-  - 
+  - Floor
   - 
   - 
   - 
