@@ -44,8 +44,17 @@ namespace StarterAssets.Combat
         private CombatStateTracker _playerCombatState;
         private bool _isEngaged;
 
+        // Se activa la primera vez que el jugador entra en DetectionRadius y no se apaga: habilita la
+        // persecución fuera del radio en ataques con PursuesAfterDetection (p. ej. a distancia).
+        private bool _hasDetectedPlayer;
+
         private static readonly int SpeedHash = Animator.StringToHash("Speed");
         private static readonly int MotionSpeedHash = Animator.StringToHash("MotionSpeed");
+
+        // Opcionales: un controller sin estos parámetros (p. ej. el del enemigo a distancia) no debe
+        // llenar la consola de "Parameter does not exist" cada frame.
+        private bool _hasSpeedParam;
+        private bool _hasMotionSpeedParam;
 
         // Patrol state
         private bool _isPatrolling;
@@ -63,6 +72,11 @@ namespace StarterAssets.Combat
         {
             _agent = GetComponent<NavMeshAgent>();
             TryGetComponent(out _animator);
+            if (_animator != null)
+            {
+                _hasSpeedParam = _animator.HasParameter(SpeedHash);
+                _hasMotionSpeedParam = _animator.HasParameter(MotionSpeedHash);
+            }
             _health = GetComponent<Health>(); // optional — null means no stagger/death gating
 
             _attack = GetComponent<EnemyAttackBehavior>();
@@ -143,8 +157,14 @@ namespace StarterAssets.Combat
 
             float distanceToPlayer = Vector3.Distance(transform.position, _playerTransform.position);
 
-            // Engaged = chasing (inside DetectionRadius) or mid-attack.
-            SetEngaged(_attack.IsAttacking || distanceToPlayer <= DetectionRadius);
+            if (distanceToPlayer <= DetectionRadius) _hasDetectedPlayer = true;
+
+            // Inside DetectionRadius, or outside it but still pursuing a player this enemy already detected.
+            bool isChasing = distanceToPlayer <= DetectionRadius
+                             || (_hasDetectedPlayer && _attack.PursuesAfterDetection);
+
+            // Engaged = chasing or mid-attack.
+            SetEngaged(_attack.IsAttacking || isChasing);
 
             // Lock movement while mid-attack. Turn toward the player only if the attack doesn't own facing
             // itself (melee does: MeleeCombatController, so swings commit after AE_AttackActive).
@@ -156,8 +176,8 @@ namespace StarterAssets.Combat
                 return;
             }
 
-            // 1. OUT OF DETECTION RANGE: Stand idle (or patrol)
-            if (distanceToPlayer > DetectionRadius)
+            // 1. OUT OF DETECTION RANGE (and not pursuing): Stand idle (or patrol)
+            if (!isChasing)
             {
                 IdleOrPatrol();
                 return;
@@ -368,7 +388,7 @@ namespace StarterAssets.Combat
 
         private void UpdateAnimationSpeed(float targetSpeed)
         {
-            if (_animator == null) return;
+            if (_animator == null || !_hasSpeedParam) return;
 
             // Smoothly blend the Speed parameter to avoid sudden animation snaps
             float currentSpeed = _animator.GetFloat(SpeedHash);
@@ -384,7 +404,7 @@ namespace StarterAssets.Combat
 
             // Update MotionSpeed parameter required by StarterAssets Blend Trees
             float motionSpeed = smoothedSpeed > 0.05f ? 1f : 0f;
-            _animator.SetFloat(MotionSpeedHash, motionSpeed);
+            if (_hasMotionSpeedParam) _animator.SetFloat(MotionSpeedHash, motionSpeed);
         }
 
         private void OnDrawGizmosSelected()

@@ -58,6 +58,9 @@ namespace StarterAssets.Combat
         public string GuardBreakAnimationTrigger = "GuardBreak";
         [Tooltip("Dev safety fallback only: the stagger normally ends via AE_StaggerEnd on the GuardBreak clip.")]
         public float GuardBreakStaggerSafetyDuration = 1.5f;
+        [Tooltip("Fraction of the damage taken when a guard-breaking attack (HitInfo.ForceGuardBreak, e.g. the boss's combo finisher) hits the guard.")]
+        [Range(0f, 1f)]
+        public float ForcedGuardBreakDamageMultiplier = 0.5f;
 
         [Header("Parry")]
         [Tooltip("Optional Animator trigger played on a successful parry. If this parameter doesn't exist, the parry has no animation and no recovery lockout.")]
@@ -196,6 +199,7 @@ namespace StarterAssets.Combat
         {
             damageThrough = hit.Damage;
 
+            if (hit.Unblockable) return BlockResolution.NotBlocked; // neither block nor parry: only i-frames help
             if (!CanBlock() || !IsFacing(hit.SourcePosition)) return BlockResolution.NotBlocked;
 
             if (IsTimedParry(hit))
@@ -206,6 +210,14 @@ namespace StarterAssets.Combat
             }
 
             if (!IsBlocking) return BlockResolution.NotBlocked;
+
+            // Guard-breaking attacks (boss finisher) break any guard, full stamina or not. Stamina is left
+            // as is: the penalty is the stagger plus the partial damage.
+            if (hit.ForceGuardBreak)
+            {
+                damageThrough = hit.Damage * ForcedGuardBreakDamageMultiplier;
+                return BlockResolution.GuardBroken;
+            }
 
             if (_stamina == null || StaminaCostPerDamage <= 0f)
             {

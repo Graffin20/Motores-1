@@ -6,6 +6,11 @@ namespace StarterAssets.Combat
     /// <summary>
     /// Ataque a distancia: apunta al objetivo, espera un windup y dispara un proyectil.
     /// Solo dispara si tiene línea de visión (configurable).
+    ///
+    /// Con Animator y AttackTriggerName: el proyectil sale en el Animation Event AE_FireProjectile del clip
+    /// de ataque (el timing vive en la animación, como en el melee). WindupTime pasa a ser solo el
+    /// fallback de seguridad si el evento nunca llega. Sin animación, dispara tras WindupTime como antes.
+    /// Un stagger o la muerte cancelan el disparo pendiente (el Hit por Any State corta el clip).
     /// </summary>
     public class RangedAttackBehavior : EnemyAttackBehavior
     {
@@ -29,20 +34,37 @@ namespace StarterAssets.Combat
         [Tooltip("Capas que bloquean los disparos (paredes, suelo). No incluyas Player ni Enemy si tienen capa propia.")]
         public LayerMask LineOfSightBlockers = 1; // Default
 
+        [Header("Pursuit")]
+        [Tooltip("Una vez detectado el jugador, lo persigue aunque salga de DetectionRadius hasta volver a tenerlo " +
+                 "en AttackRange. Desactivado = fuera del radio se queda quieto o patrulla.")]
+        public bool KeepPursuingAfterDetection = true;
+
+        public override bool PursuesAfterDetection => KeepPursuingAfterDetection;
+
         [Header("Timing")]
-        [Tooltip("Tiempo entre que empieza el ataque y sale el proyectil (para sincronizar con la animación).")]
+        [Tooltip("Sin animación: tiempo entre que empieza el ataque y sale el proyectil. Con animación el disparo " +
+                 "lo hace AE_FireProjectile; este valor no se usa.")]
         public float WindupTime = 0.4f;
+
+        [Tooltip("Con animación: si AE_FireProjectile no llega en este tiempo, dispara igual y avisa en consola " +
+                 "(falta el evento en el clip o la transición no existe). Solo red de seguridad de desarrollo.")]
+        public float FireEventSafetyTimeout = 2f;
 
         [Tooltip("Tiempo que queda quieto después de disparar.")]
         public float RecoveryTime = 0.4f;
 
         [Header("Animation (Optional)")]
         [Tooltip("Nombre del Trigger del Animator a disparar al atacar. Vacío = sin animación.")]
-        public string AttackTriggerName = "";
+        public string AttackTriggerName = "Attack";
 
         private Animator _animator;
+        private Health _health;
         private int _attackTriggerHash;
         private bool _isAttacking;
+
+        // Disparo pendiente: lo consume AE_FireProjectile (o el timeout).
+        private bool _waitingForFireEvent;
+        private Transform _pendingTarget;
 
         public override bool IsAttacking => _isAttacking;
 
@@ -55,7 +77,8 @@ namespace StarterAssets.Combat
 
         private void Awake()
         {
-            TryGetComponent(out _animator);
+            TryGetComponent(out _animator); // en este mismo objeto: los Animation Events solo llegan aquí
+            _health = GetComponent<Health>(); // opcional — null = sin cancelación por stagger/muerte
             if (!string.IsNullOrEmpty(AttackTriggerName))
             {
                 _attackTriggerHash = Animator.StringToHash(AttackTriggerName);
@@ -66,7 +89,22 @@ namespace StarterAssets.Combat
         {
             StopAllCoroutines();
             _isAttacking = false;
+            _waitingForFireEvent = false;
+            _pendingTarget = null;
         }
+
+        /// <summary>Animation Event: ponelo en el frame del clip de ataque en que sale el proyectil.</summary>
+        public void AE_FireProjectile()
+        {
+            if (!_waitingForFireEvent) return; // evento suelto (ataque cancelado o sin ataque en curso)
+            _waitingForFireEvent = false;
+            if (_pendingTarget != null) Fire(_pendingTarget);
+        }
+
+        private bool UsesAnimationEvent =>
+            _animator != null && _attackTriggerHash != 0 && _animator.HasParameter(_attackTriggerHash);
+
+        private bool IsInterrupted => _health != null && (_health.IsHitStunned || _health.IsDead);
 
         public override bool CanAttack(Transform target)
         {
@@ -94,19 +132,56 @@ namespace StarterAssets.Combat
         {
             _isAttacking = true;
 
-            if (_animator != null && _attackTriggerHash != 0)
+            if (UsesAnimationEvent)
             {
+                _pendingTarget = target;
+                _waitingForFireEvent = true;
                 _animator.SetTrigger(_attackTriggerHash);
-            }
 
-            if (WindupTime > 0f)
-            {
-                yield return new WaitForSeconds(WindupTime);
-            }
+                float elapsed = 0f;
+                while (_waitingForFireEvent)
+                {
+                    if (IsInterrupted)
+                    {
+                        CancelAttack();
+                        yield break;
+                    }
 
-            if (target != null)
+                    if (elapsed >= FireEventSafetyTimeout)
+                    {
+                        Debug.LogWarning($"{name}: AE_FireProjectile didn't fire within {FireEventSafetyTimeout}s of the " +
+                                         $"'{AttackTriggerName}' trigger. Check the attack clip has the event. Firing anyway.", this);
+                        AE_FireProjectile();
+                        break;
+                    }
+
+                    elapsed += Time.deltaTime;
+                    yield return null;
+                }
+                _pendingTarget = null;
+            }
+            else
             {
-                Fire(target);
+                if (_animator != null && _attackTriggerHash != 0)
+                {
+                    Debug.LogWarning($"{name}: Animator has no '{AttackTriggerName}' trigger; firing after WindupTime.", this);
+                }
+
+                if (WindupTime > 0f)
+                {
+                    yield return new WaitForSeconds(WindupTime);
+                }
+
+                if (IsInterrupted)
+                {
+                    CancelAttack();
+                    yield break;
+                }
+
+                if (target != null)
+                {
+                    Fire(target);
+                }
             }
 
             if (RecoveryTime > 0f)
@@ -115,6 +190,15 @@ namespace StarterAssets.Combat
             }
 
             _isAttacking = false;
+        }
+
+        private void CancelAttack()
+        {
+            _waitingForFireEvent = false;
+            _pendingTarget = null;
+            _isAttacking = false;
+            // Un trigger no consumido quedaría armado y dispararía el ataque al salir del stagger.
+            if (_animator != null && _attackTriggerHash != 0) _animator.ResetTrigger(_attackTriggerHash);
         }
 
         private void Fire(Transform target)

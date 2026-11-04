@@ -13,6 +13,8 @@ namespace StarterAssets.Combat
         public string HitAnimationTrigger = "Hit";
         [Tooltip("Safety fallback: if AE_HitReactionEnd() never fires on the Hit clip, the stun ends automatically after this long instead of getting stuck forever.")]
         public float HitStunSafetyDuration = 1f;
+        [Tooltip("Off for bosses (poise): plain hits deal damage and knockback but never interrupt. Being parried still staggers (that calls Stagger directly).")]
+        public bool StaggerOnPlainHits = true;
 
         [Header("Death")]
         public string DieAnimationTrigger = "Die";
@@ -41,8 +43,16 @@ namespace StarterAssets.Combat
         // so Health doesn't need to know which concrete components provide it.
         private IInvulnerabilitySource[] _invulnerabilitySources;
 
+        // Event-driven actions a stagger/death must cancel (boss special attacks, ...).
+        private IInterruptibleAction[] _interruptibleActions;
+
         private bool _isHitStunned;
         private float _hitStunTimer;
+
+        // Held by another character (boss grab). A bool, not just the socket reference, so a destroyed
+        // holder (fake-null socket) is noticed and released instead of silently reading as "not held".
+        private bool _isHeld;
+        private Transform _holdSocket;
 
         // Scripts to disable on death, gathered once at Awake. Deliberately NOT the
         // CharacterController itself — see the note in Die() below for why.
@@ -67,6 +77,14 @@ namespace StarterAssets.Combat
         /// doesn't fight the push with its own movement.</summary>
         public bool IsBeingKnockedBack => _isBeingKnockedBack;
 
+        /// <summary>Goes up on every Stagger/BeginHold. Lets an attacker tell whether the stagger it caused is
+        /// still the current one (the boss grab is only allowed during its own stomp's stun).</summary>
+        public int StaggerId { get; private set; }
+
+        /// <summary>True while another character holds this one (boss grab): position follows the holder's
+        /// socket, IsHitStunned stays true (so every action and locomotion is refused), and hits only deal damage.</summary>
+        public bool IsHeld => _isHeld;
+
         public bool IsInvulnerable
         {
             get
@@ -90,6 +108,7 @@ namespace StarterAssets.Combat
             _block = GetComponent<BlockController>();             // optional — null means hits are never blocked/parried
             _controller = GetComponent<CharacterController>();    // optional — null means no knockback movement
             _invulnerabilitySources = GetComponents<MonoBehaviour>().OfType<IInvulnerabilitySource>().ToArray();
+            _interruptibleActions = GetComponents<MonoBehaviour>().OfType<IInterruptibleAction>().ToArray();
 
             // Gather whichever of these exist on this GameObject (player or AI, hence the
             // GetComponent-and-filter-nulls approach rather than assuming a fixed set) so death
@@ -114,7 +133,13 @@ namespace StarterAssets.Combat
             if (!_isHitStunned) return;
 
             _hitStunTimer -= Time.deltaTime;
-            if (_hitStunTimer <= 0f)
+            if (_hitStunTimer <= 0f && _isHeld)
+            {
+                Debug.LogWarning($"{nameof(Health)} on '{name}': held longer than its safety duration without the holder " +
+                                  "releasing it (AE_GrabRelease). Force-releasing.", this);
+                EndHold(transform.position, 0f, 0f);
+            }
+            else if (_hitStunTimer <= 0f)
             {
                 Debug.LogWarning($"{nameof(Health)} on '{name}': stagger exceeded its safety duration " +
                                   "without AE_HitReactionEnd()/AE_StaggerEnd() firing. Check the playing reaction clip has the event wired up. Force-ending.", this);
@@ -180,22 +205,27 @@ namespace StarterAssets.Combat
                                                  HitResult.GuardBroken);
 
                 default:
+                    // The attack may ask for its own reaction (boss stomp = "Stunned").
                     return ApplyDamageAndStagger(hit, hit.Damage,
-                                                 HitAnimationTrigger,
-                                                 HitStunSafetyDuration,
-                                                 HitResult.Hit);
+                                                 string.IsNullOrEmpty(hit.StaggerAnimationTrigger) ? HitAnimationTrigger : hit.StaggerAnimationTrigger,
+                                                 hit.StaggerSafetyDuration > 0f ? hit.StaggerSafetyDuration : HitStunSafetyDuration,
+                                                 HitResult.Hit,
+                                                 allowStagger: StaggerOnPlainHits);
             }
         }
 
         /// <summary>Shared tail of a plain hit and a guard break: lose health, get pushed, then either
-        /// die or stagger with the given reaction.</summary>
+        /// die or stagger with the given reaction. Damage-only hits (DoT ticks) and hits taken while held
+        /// skip the push and the stagger: a reaction would break the grab pose / stun-lock the defender.</summary>
         private HitResult ApplyDamageAndStagger(in HitInfo hit, float damage, string staggerTrigger,
-                                                float staggerSafetyDuration, HitResult resultIfSurvived)
+                                                float staggerSafetyDuration, HitResult resultIfSurvived,
+                                                bool allowStagger = true)
         {
             CurrentHealth -= damage;
             Debug.Log($"{gameObject.name} took {damage} damage ({resultIfSurvived}). Health remaining: {CurrentHealth}");
 
-            ApplyKnockback(hit.SourcePosition, hit.KnockbackDistanceMultiplier, hit.KnockbackDurationMultiplier);
+            bool reacts = !hit.DamageOnly && !_isHeld;
+            if (reacts) ApplyKnockback(hit.SourcePosition, hit.KnockbackDistanceMultiplier, hit.KnockbackDurationMultiplier);
 
             if (CurrentHealth <= 0f)
             {
@@ -203,7 +233,7 @@ namespace StarterAssets.Combat
                 return HitResult.Killed;
             }
 
-            Stagger(staggerSafetyDuration, staggerTrigger);
+            if (reacts && allowStagger) Stagger(staggerSafetyDuration, staggerTrigger);
             return resultIfSurvived;
         }
 
@@ -213,7 +243,7 @@ namespace StarterAssets.Combat
         /// </summary>
         public void ApplyKnockback(Vector3 sourcePosition, float distanceMultiplier = 1f, float durationMultiplier = 1f)
         {
-            if (_controller == null || IsDead) return;
+            if (_controller == null || IsDead || _isHeld) return; // held: the holder's socket owns the position
 
             Vector3 pushDirection = transform.position - sourcePosition;
             pushDirection.y = 0f; // horizontal only — don't launch the character into the air
@@ -247,16 +277,28 @@ namespace StarterAssets.Combat
         /// </summary>
         public void Stagger(float safetyDuration, string animationTrigger)
         {
-            if (IsDead) return;
+            if (IsDead || _isHeld) return; // held: the holder ends it with EndHold (which then staggers)
 
             _isHitStunned = true;
             _hitStunTimer = safetyDuration;
+            StaggerId++;
 
-            // A stagger interrupts whatever action was playing; each action is cancelled explicitly
-            // because its own end event (AE_AttackEnd, AE_IsRolling) won't fire once the clip is cut.
+            CancelActions();
+            PlayReaction(animationTrigger);
+        }
+
+        /// <summary>A stagger interrupts whatever action was playing; each action is cancelled explicitly
+        /// because its own end event (AE_AttackEnd, AE_IsRolling, AE_SpecialAttackEnd) won't fire once the clip is cut.</summary>
+        private void CancelActions()
+        {
             _meleeCombat?.ForceCancelAttack();
             _roll?.ForceCancelRoll();
+            foreach (var action in _interruptibleActions) action.ForceCancel();
+        }
 
+        /// <summary>Sets the trigger, falling back to Hit if this Animator doesn't have it.</summary>
+        private void PlayReaction(string animationTrigger)
+        {
             if (!_hasAnimator) return;
 
             int triggerHash = Animator.StringToHash(animationTrigger);
@@ -264,9 +306,76 @@ namespace StarterAssets.Combat
             if (_animator.HasParameter(triggerHash)) _animator.SetTrigger(triggerHash);
         }
 
+        /// <summary>
+        /// Another character grabs this one (boss grab). Replaces any current stagger: the Stunned clip is cut
+        /// by animationTrigger, so its AE_StaggerEnd won't fire; the hold keeps IsHitStunned true until
+        /// EndHold. While held, LateUpdate pins the position to socket (never parented: the 100x bone scale
+        /// would rescale the character, and its CharacterController would collide with the holder's).
+        /// safetyDuration is only the dev fallback if the holder never releases. Returns false if refused.
+        /// </summary>
+        public bool BeginHold(Transform socket, string animationTrigger, float safetyDuration)
+        {
+            if (IsDead || _isHeld || socket == null) return false;
+
+            _isHeld = true;
+            _holdSocket = socket;
+            _isHitStunned = true;
+            _hitStunTimer = safetyDuration;
+            _isBeingKnockedBack = false; // the socket owns the position from now on
+            StaggerId++;
+
+            CancelActions();
+            PlayReaction(animationTrigger);
+            SnapToHoldSocket();
+            return true;
+        }
+
+        /// <summary>The holder lets go: pushed away from pushSource, then a normal Hit reaction.</summary>
+        public void EndHold(Vector3 pushSource, float knockbackDistanceMultiplier, float knockbackDurationMultiplier)
+        {
+            if (!_isHeld) return;
+            ClearHold();
+            if (IsDead) return;
+
+            _isHitStunned = false; // so Stagger below starts a fresh reaction
+            ApplyKnockback(pushSource, knockbackDistanceMultiplier, knockbackDurationMultiplier);
+            Stagger(HitStunSafetyDuration, HitAnimationTrigger);
+        }
+
+        private void ClearHold()
+        {
+            _isHeld = false;
+            _holdSocket = null;
+            // The transform was moved directly; without this the CharacterController's next Move() can start
+            // from its stale collider position and snap the character back into the holder's hands.
+            Physics.SyncTransforms();
+        }
+
+        // LateUpdate: after the holder's Animator has posed its hand this frame.
+        private void LateUpdate()
+        {
+            if (!_isHeld) return;
+            if (_holdSocket == null)
+            {
+                EndHold(transform.position, 0f, 0f); // holder destroyed mid-grab
+                return;
+            }
+            SnapToHoldSocket();
+        }
+
+        /// <summary>Position = socket; facing = the socket's forward, yaw only (the CharacterController stays upright).</summary>
+        private void SnapToHoldSocket()
+        {
+            transform.position = _holdSocket.position;
+            Vector3 forward = _holdSocket.forward;
+            forward.y = 0f;
+            if (forward.sqrMagnitude > 0.0001f) transform.rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
+        }
+
         /// <summary>Animation Event — place at the end of the Hit reaction clip.</summary>
         public void AE_HitReactionEnd()
         {
+            if (_isHeld) return; // a clip cut by the grab can still fire its event during the transition
             _isHitStunned = false;
         }
 
@@ -285,8 +394,8 @@ namespace StarterAssets.Combat
             _isHitStunned = false;
             Debug.Log($"{gameObject.name} died!");
 
-            _meleeCombat?.ForceCancelAttack();
-            _roll?.ForceCancelRoll();
+            if (_isHeld) ClearHold(); // died in the holder's hands: drop where it is
+            CancelActions();
 
             if (_hasAnimator) _animator.SetTrigger(_dieTriggerHash);
 

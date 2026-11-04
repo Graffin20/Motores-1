@@ -32,6 +32,13 @@ namespace StarterAssets.Combat
         public virtual bool ControlsFacingWhileAttacking => false;
 
         /// <summary>
+        /// Si es true, una vez que el enemigo detectó al jugador (entró en DetectionRadius) lo sigue persiguiendo
+        /// aunque salga del radio, hasta volver a tenerlo en AttackRange. Si es false, fuera del radio vuelve a
+        /// quedarse quieto o patrullar (comportamiento original).
+        /// </summary>
+        public virtual bool PursuesAfterDetection => false;
+
+        /// <summary>
         /// Condiciones de posición para poder atacar (ej: línea de visión). No incluye el cooldown.
         /// Si devuelve false estando en rango, el enemigo sigue acercándose.
         /// </summary>
