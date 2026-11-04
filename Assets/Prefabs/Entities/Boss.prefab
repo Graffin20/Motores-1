@@ -477,6 +477,7 @@ MonoBehaviour:
   StaggerOnPlainHits: 0
   DieAnimationTrigger: Die
   DestroyDelayAfterDeath: 15
+  CountsAsKill: 0
   KnockbackDistance: 0
   KnockbackDuration: 0
 --- !u!114 &6922463108739020362
@@ -627,6 +628,7 @@ MonoBehaviour:
   FireConeCooldown: 7
   StompCooldown: 5
   RecoveryBetweenAttacks: 0.8
+  StompIgnoresRecovery: 1
   IsTurningParameter: IsTurning
   TurnDirectionParameter: TurnDirection
   TurnDirectionDampTime: 0.15
@@ -811,10 +813,18 @@ PrefabInstance:
       propertyPath: m_ConstrainProportionsScale
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: -6812743022095801232, guid: 48e24c87cecd3eb45bb70f4d5e11ee08, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 376a62dba4acf7c4bb55e756c9ae2efb, type: 2}
     - target: {fileID: 919132149155446097, guid: 48e24c87cecd3eb45bb70f4d5e11ee08, type: 3}
       propertyPath: m_Name
       value: SK_Mesh_Monster_1
       objectReference: {fileID: 0}
+    - target: {fileID: 4640264143876856917, guid: 48e24c87cecd3eb45bb70f4d5e11ee08, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ff387139355cfd847a5dd1280580caed, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:

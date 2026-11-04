@@ -195,8 +195,10 @@ MonoBehaviour:
   <MaxHealth>k__BackingField: 50
   HitAnimationTrigger: Hit
   HitStunSafetyDuration: 1
+  StaggerOnPlainHits: 1
   DieAnimationTrigger: Die
   DestroyDelayAfterDeath: 5
+  CountsAsKill: 0
   KnockbackDistance: 1
   KnockbackDuration: 0.2
 --- !u!114 &5096197736139240735
@@ -279,26 +281,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.HitFeedback
   Hit:
     Fx: {fileID: 1229420507550489884, guid: 39ceb4ddbac1d994292efe31aa7012dc, type: 3}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.1
     Shake: 0.3
   Killed:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.12
     Shake: 0.6
   Blocked:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.04
     Shake: 0.2
   GuardBroken:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.1
     Shake: 0.5
   Parried:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.15
     Shake: 0.6
   Invulnerable:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0
     Shake: 0
   FxLifetime: 1
@@ -391,6 +399,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Demon
       objectReference: {fileID: 0}
+    - target: {fileID: 1041781708020795772, guid: c3d73ba06daaeef40b556c623d33fc02, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: de0e9e622d89126479a89df28f1dd942, type: 2}
     - target: {fileID: 1865730839585008315, guid: c3d73ba06daaeef40b556c623d33fc02, type: 3}
       propertyPath: m_Layer
       value: 20

@@ -277,6 +277,10 @@ PrefabInstance:
       propertyPath: HitStunSafetyDuration
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 1302415518723517567, guid: 4659a56d1c3535b41bff5c4f3411afac, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: de0e9e622d89126479a89df28f1dd942, type: 2}
     - target: {fileID: 8120407269459800828, guid: 4659a56d1c3535b41bff5c4f3411afac, type: 3}
       propertyPath: m_LocalPosition.x
       value: -16.69

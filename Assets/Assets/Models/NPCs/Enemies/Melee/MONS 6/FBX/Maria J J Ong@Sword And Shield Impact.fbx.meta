@@ -55,8 +55,8 @@ ModelImporter:
       bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
       curves: []
       events:
-      - time: 1
-        functionName: AE_ParryEnd
+      - time: 0.9233227
+        functionName: AE_StaggerEnd
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

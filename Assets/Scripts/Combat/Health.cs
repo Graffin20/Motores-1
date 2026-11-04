@@ -394,7 +394,7 @@ namespace StarterAssets.Combat
 
         private void Die(Vector3 killSourcePosition)
         {
-
+            IsDead = true;
             _isHitStunned = false;
             Debug.Log($"{gameObject.name} died!");
 

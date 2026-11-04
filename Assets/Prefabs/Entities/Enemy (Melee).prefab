@@ -285,6 +285,8 @@ MonoBehaviour:
     KnockbackDurationMultiplier: 1
     ForwardPushDistance: 1
     WeaponTraceIndex: 0
+    AdditionalWeaponTraceIndices: 
+    AlwaysGuardBreaks: 0
   ComboCooldownDuration: 0.35
   HeavyAnimationTrigger: HeavyAttack
   HeavyAttackDamage: 20
@@ -293,6 +295,7 @@ MonoBehaviour:
   HeavyKnockbackDurationMultiplier: 1
   HeavyForwardPushDistance: 2
   HeavyWeaponTraceIndex: 0
+  HeavyAdditionalWeaponTraceIndices: 01000000
   WeaponTraces:
   - {fileID: 481392018268005234}
   - {fileID: 6064474694846850550}
@@ -307,6 +310,7 @@ MonoBehaviour:
   lookAtReference: {fileID: 0}
   TrackTargetDuringWindup: 0
   WindupTrackingTurnSpeed: 540
+  MaxFacingSnapDegrees: -1
   EnablePhaseSafetyTimeout: 1
   PhaseSafetyTimeoutSeconds: 2
 --- !u!114 &7226366377185473479
@@ -341,11 +345,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: df46f4d120051a44b95d5bb92c012a23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.Health
-  <MaxHealth>k__BackingField: 50
+  <MaxHealth>k__BackingField: 75
   HitAnimationTrigger: Hit
-  HitStunSafetyDuration: 1
+  HitStunSafetyDuration: 5
+  StaggerOnPlainHits: 1
   DieAnimationTrigger: Die
   DestroyDelayAfterDeath: 15
+  CountsAsKill: 0
   KnockbackDistance: 1
   KnockbackDuration: 0.2
 --- !u!114 &5096197736139240735
@@ -374,6 +380,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.RagdollController
   Bodies: []
   CollidersAsHurtboxes: 1
+  AttachOnRagdoll: []
   RagdollSafetyDelay: 3
   KillPushSpeed: 4
   KillPushUpward: 0.6
@@ -391,26 +398,32 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.HitFeedback
   Hit:
     Fx: {fileID: 1229420507550489884, guid: 39ceb4ddbac1d994292efe31aa7012dc, type: 3}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.1
     Shake: 0.3
   Killed:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.12
     Shake: 0.6
   Blocked:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.04
     Shake: 0.2
   GuardBroken:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.1
     Shake: 0.5
   Parried:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.15
     Shake: 0.6
   Invulnerable:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0
     Shake: 0
   FxLifetime: 1

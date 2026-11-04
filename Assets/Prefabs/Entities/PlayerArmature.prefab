@@ -694,7 +694,7 @@ MonoBehaviour:
     AdditionalWeaponTraceIndices: 
     AlwaysGuardBreaks: 0
   - AnimationTrigger: Attack2
-    Damage: 10
+    Damage: 15
     StaminaCost: 10
     KnockbackDistanceMultiplier: 1.2
     KnockbackDurationMultiplier: 1
@@ -703,7 +703,7 @@ MonoBehaviour:
     AdditionalWeaponTraceIndices: 
     AlwaysGuardBreaks: 0
   - AnimationTrigger: Attack3
-    Damage: 10
+    Damage: 20
     StaminaCost: 10
     KnockbackDistanceMultiplier: 1
     KnockbackDurationMultiplier: 1.5
@@ -713,7 +713,7 @@ MonoBehaviour:
     AlwaysGuardBreaks: 0
   ComboCooldownDuration: 0.25
   HeavyAnimationTrigger: HeavyAttack
-  HeavyAttackDamage: 22
+  HeavyAttackDamage: 30
   HeavyAttackStaminaCost: 20
   HeavyKnockbackDistanceMultiplier: 2
   HeavyKnockbackDurationMultiplier: 1.5
@@ -952,6 +952,7 @@ MonoBehaviour:
   StaggerOnPlainHits: 1
   DieAnimationTrigger: Die
   DestroyDelayAfterDeath: 5
+  CountsAsKill: 0
   KnockbackDistance: 1
   KnockbackDuration: 0.2
 --- !u!114 &3111559274366538753
