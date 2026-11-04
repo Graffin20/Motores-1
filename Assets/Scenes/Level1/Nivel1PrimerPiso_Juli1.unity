@@ -833676,6 +833676,10 @@ PrefabInstance:
       propertyPath: m_LocalRotation.z
       value: -8.056079e-11
       objectReference: {fileID: 0}
+    - target: {fileID: 8592433936901363109, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
+      propertyPath: HittableLayers.m_Bits
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8915790542344396560, guid: 48d2d3f109afe834c906d12273c78ade, type: 3}
       propertyPath: m_Name
       value: PlayerCameraPrefabNested
