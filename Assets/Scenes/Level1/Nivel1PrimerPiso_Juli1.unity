@@ -1360633,7 +1360633,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4608
   rayLength: 2
-  defaultSurface: 0
+  defaultSurface: 1
   minInterval: 0.2
   debugSurface: 0
 --- !u!82 &1845429972
