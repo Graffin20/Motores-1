@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: afef5334b16737e47876654db8edde23
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 180352
+  packageName: Fristy stylize Modular Assets 2
+  packageVersion: 2.0
+  assetPath: Assets/Fristy stylize Modular Assets 2/Shaders/URP/MainLighting.shadersubgraph.txt
+  uploadId: 402846

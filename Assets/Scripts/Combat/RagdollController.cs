@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -22,6 +23,16 @@ namespace StarterAssets.Combat
     [RequireComponent(typeof(Health))]
     public class RagdollController : MonoBehaviour
     {
+        /// <summary>A bone that isn't a child of the limb it belongs to (IK-style rigs: hands/feet parented to
+        /// the armature root and animated in place).</summary>
+        [Serializable]
+        public struct BoneAttachment
+        {
+            [Tooltip("Bone that must follow the ragdoll (e.g. Hand.L).")]
+            public Transform Bone;
+            [Tooltip("Ragdoll bone it hangs from (e.g. Arm2.L).")]
+            public Transform AttachTo;
+        }
         [Tooltip("Optional. Empty = found automatically: every child Rigidbody with a Joint, plus the bodies " +
                  "those joints connect to (the hips). Fill it in if something else under the character has a " +
                  "Rigidbody + Joint that isn't part of the ragdoll.")]
@@ -30,6 +41,12 @@ namespace StarterAssets.Combat
         [Tooltip("Keep the limb colliders on (kinematic) while alive, as hurtboxes for weapon traces. Off = " +
                  "colliders only exist once the ragdoll takes over.")]
         public bool CollidersAsHurtboxes = true;
+
+        [Tooltip("Rigs whose hands/feet are NOT children of the forearm/shin (parented to the armature root and " +
+                 "animated directly): with the Animator off nothing moves them, so they freeze in mid-air. Each " +
+                 "Bone is re-parented to AttachTo (keeping its world pose) when the ragdoll takes over. Not undone: " +
+                 "the corpse is never revived.")]
+        public List<BoneAttachment> AttachOnRagdoll = new();
 
         [Header("Hand-off")]
         [Tooltip("Dev safety fallback only: ragdoll after this many seconds of death if AE_EnableRagdoll never fires.")]
@@ -135,6 +152,14 @@ namespace StarterAssets.Combat
             bool hasVelocity = _hasPreviousPose && dt > 0f;
 
             if (_animator != null) _animator.enabled = false; // bones keep the current pose as the start
+
+            // Done with the Animator already off, so nothing writes these bones by their old paths afterwards.
+            foreach (var attachment in AttachOnRagdoll)
+            {
+                if (attachment.Bone != null && attachment.AttachTo != null)
+                    attachment.Bone.SetParent(attachment.AttachTo, worldPositionStays: true);
+            }
+
             SetRagdoll(true);
 
             Vector3 push = Vector3.zero;

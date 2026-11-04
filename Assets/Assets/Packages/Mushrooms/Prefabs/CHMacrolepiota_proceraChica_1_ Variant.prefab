@@ -1,0 +1,106 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &5579064726867844820
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 176410, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_Name
+      value: Macrolepiota_proceraChica_1_ Variant
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.36
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -7.3769045
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.2062159
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -6.66
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 485664, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 176410, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6906554402558769740}
+  m_SourcePrefab: {fileID: 100100000, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+--- !u!1 &5579064726867685326 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 176410, guid: 6951e34dd42990249875ee15fcfd9f38, type: 3}
+  m_PrefabInstance: {fileID: 5579064726867844820}
+  m_PrefabAsset: {fileID: 0}
+--- !u!136 &6906554402558769740
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5579064726867685326}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 3.738111
+  m_Height: 10.86
+  m_Direction: 1
+  m_Center: {x: 0, y: 5, z: 0}

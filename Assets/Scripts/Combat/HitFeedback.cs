@@ -23,6 +23,9 @@ namespace StarterAssets.Combat
         {
             [Tooltip("Spawned at the contact point, facing along the swing. Empty = no FX.")]
             public GameObject Fx;
+            [Tooltip("Optional. Set: the FX spawns at this object (position AND rotation, e.g. an empty on the " +
+                     "blade) instead of the contact point, and follows it for its whole lifetime.")]
+            public Transform SpawnPoint;
             [Tooltip("Seconds both characters' animation freezes. 0 = none.")]
             public float HitStop;
             [Tooltip("Camera shake force (Impulse Source). 0 = none.")]
@@ -64,7 +67,13 @@ namespace StarterAssets.Combat
             Feedback feedback = For(result);
             if (feedback == null) return;
 
-            SpawnFx(feedback.Fx != null || result != HitResult.Killed ? feedback.Fx : Hit.Fx, hit);
+            // Killed without its own FX borrows Hit's prefab AND spawn point (they were set up together).
+            Feedback fxSource = feedback.Fx != null || result != HitResult.Killed ? feedback : Hit;
+            SpawnFx(fxSource.Fx, fxSource.SpawnPoint, hit);
+
+            // Damage-over-time ticks (boss fire cone): FX only. Hit-stop every tick would keep freezing the
+            // attacker's Animator mid-cast (delaying its AE_ events), and the shake would never settle.
+            if (hit.DamageOnly) return;
 
             if (feedback.HitStop > 0f)
             {
@@ -95,9 +104,18 @@ namespace StarterAssets.Combat
             }
         }
 
-        private void SpawnFx(GameObject prefab, in HitInfo hit)
+        private void SpawnFx(GameObject prefab, Transform spawnPoint, in HitInfo hit)
         {
             if (prefab == null) return;
+
+            if (spawnPoint != null)
+            {
+                // Follows the anchor instead of being parented to it, so the prefab keeps its own scale.
+                var anchored = Instantiate(prefab, spawnPoint.position, spawnPoint.rotation);
+                anchored.AddComponent<FollowTransform>().Target = spawnPoint;
+                if (FxLifetime > 0f) Destroy(anchored, FxLifetime);
+                return;
+            }
 
             Vector3 position = hit.HasContact ? hit.ContactPoint : transform.TransformPoint(FallbackFxOffset);
             Vector3 direction = hit.HasContact && hit.ContactDirection.sqrMagnitude > 1e-6f
