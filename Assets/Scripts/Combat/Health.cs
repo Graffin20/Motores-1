@@ -17,8 +17,12 @@ namespace StarterAssets.Combat
         public bool StaggerOnPlainHits = true;
 
         [Header("Death")]
+
         public string DieAnimationTrigger = "Die";
         public float DestroyDelayAfterDeath = 5f;
+        [Tooltip("Activalo solo en enemigos: al morir suma una kill al KillCounter.")]
+        public bool CountsAsKill = false;
+
 
         [Header("Knockback")]
         [Tooltip("Horizontal distance covered by the knockback push.")]
@@ -390,9 +394,12 @@ namespace StarterAssets.Combat
 
         private void Die(Vector3 killSourcePosition)
         {
-            IsDead = true;
+
             _isHitStunned = false;
             Debug.Log($"{gameObject.name} died!");
+
+            if (CountsAsKill && KillCounter.Instance != null)
+                KillCounter.Instance.AddKill();
 
             if (_isHeld) ClearHold(); // died in the holder's hands: drop where it is
             CancelActions();
