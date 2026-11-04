@@ -86,6 +86,37 @@ MonoBehaviour:
       x: 1
       y: 1
       z: 1
+--- !u!1 &628307806290900068
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 32025075583892346}
+  m_Layer: 0
+  m_Name: VFX
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &32025075583892346
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 628307806290900068}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.117, y: 0.024, z: -0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7675880804549605236}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1431935977292287057
 GameObject:
   m_ObjectHideFlags: 0
@@ -483,6 +514,7 @@ GameObject:
   - component: {fileID: -3444496617865093549}
   - component: {fileID: 5586549646180386238}
   - component: {fileID: 2102342391273450880}
+  - component: {fileID: 3961617039774091747}
   m_Layer: 6
   m_Name: PlayerArmature
   m_TagString: Player
@@ -623,7 +655,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.StaminaSystem
   MaxStamina: 100
   RegenPerSecond: 30
-  RegenDelay: 0.5
+  RegenDelay: 1
 --- !u!114 &1268809714032280159
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -659,6 +691,8 @@ MonoBehaviour:
     KnockbackDurationMultiplier: 1
     ForwardPushDistance: 0.2
     WeaponTraceIndex: 0
+    AdditionalWeaponTraceIndices: 
+    AlwaysGuardBreaks: 0
   - AnimationTrigger: Attack2
     Damage: 10
     StaminaCost: 10
@@ -666,6 +700,8 @@ MonoBehaviour:
     KnockbackDurationMultiplier: 1
     ForwardPushDistance: 0.2
     WeaponTraceIndex: 0
+    AdditionalWeaponTraceIndices: 
+    AlwaysGuardBreaks: 0
   - AnimationTrigger: Attack3
     Damage: 10
     StaminaCost: 10
@@ -673,6 +709,8 @@ MonoBehaviour:
     KnockbackDurationMultiplier: 1.5
     ForwardPushDistance: 0.2
     WeaponTraceIndex: 0
+    AdditionalWeaponTraceIndices: 
+    AlwaysGuardBreaks: 0
   ComboCooldownDuration: 0.25
   HeavyAnimationTrigger: HeavyAttack
   HeavyAttackDamage: 22
@@ -681,19 +719,21 @@ MonoBehaviour:
   HeavyKnockbackDurationMultiplier: 1.5
   HeavyForwardPushDistance: 0.75
   HeavyWeaponTraceIndex: 0
+  HeavyAdditionalWeaponTraceIndices: 
   WeaponTraces:
   - {fileID: 8546276168375101022}
   HitboxOffset: {x: 0, y: 1, z: 1.09}
   HitboxRadius: 0.8
   HittableLayers:
     serializedVersion: 2
-    m_Bits: 131072
+    m_Bits: 0
   ParriedAnimationTrigger: Parried
   ParriedStaggerSafetyDuration: 1.5
   AttackPushDuration: 0.5
   lookAtReference: {fileID: 0}
   TrackTargetDuringWindup: 0
   WindupTrackingTurnSpeed: 540
+  MaxFacingSnapDegrees: -1
   EnablePhaseSafetyTimeout: 1
   PhaseSafetyTimeoutSeconds: 2
 --- !u!114 &3109899878585592177
@@ -734,6 +774,7 @@ MonoBehaviour:
   BlockedKnockbackMultiplier: 0.5
   GuardBreakAnimationTrigger: GuardBreak
   GuardBreakStaggerSafetyDuration: 1.5
+  ForcedGuardBreakDamageMultiplier: 0.5
   ParryAnimationTrigger: Parry
   ParrySafetyDuration: 1.5
   PostParryInvulnerabilityDuration: 1
@@ -908,6 +949,7 @@ MonoBehaviour:
   <MaxHealth>k__BackingField: 100
   HitAnimationTrigger: Hit
   HitStunSafetyDuration: 1
+  StaggerOnPlainHits: 1
   DieAnimationTrigger: Die
   DestroyDelayAfterDeath: 5
   KnockbackDistance: 1
@@ -929,7 +971,7 @@ MonoBehaviour:
   CapsuleHeight: 1
   InteractableLayerMask:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 2048
   CastTriggerInteraction: 2
   interactionCameraOverride: {fileID: 0}
   rayOrigin: {fileID: 0}
@@ -1092,27 +1134,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.HitFeedback
   Hit:
-    Fx: {fileID: 1229420507550489884, guid: 39ceb4ddbac1d994292efe31aa7012dc, type: 3}
-    HitStop: 0.06
-    Shake: 0.3
+    Fx: {fileID: 1835355836541019294, guid: 4790206eadc817b4196e071640e653af, type: 3}
+    SpawnPoint: {fileID: 0}
+    HitStop: 0.1
+    Shake: 0.1
   Killed:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.12
     Shake: 0.6
   Blocked:
-    Fx: {fileID: 1229420507550489884, guid: 0d1b275e5739f8548994aaa2aab5fc1d, type: 3}
+    Fx: {fileID: 5238538877814813142, guid: 47096eff328e11a418ace7db2d72aa97, type: 3}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.04
     Shake: 0.2
   GuardBroken:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0.1
     Shake: 0.5
   Parried:
-    Fx: {fileID: 1229420507550489884, guid: 3469694365f6eca468222124bec19eef, type: 3}
+    Fx: {fileID: 362261158077530393, guid: 20fda529c996a334da7fd65b48ea40df, type: 3}
+    SpawnPoint: {fileID: 32025075583892346}
     HitStop: 0.15
     Shake: 0.6
   Invulnerable:
     Fx: {fileID: 0}
+    SpawnPoint: {fileID: 0}
     HitStop: 0
     Shake: 0
   FxLifetime: 1
@@ -1170,6 +1218,19 @@ MonoBehaviour:
     DissipationDistance: 100
     PropagationSpeed: 343
   DefaultVelocity: {x: 1, y: -1, z: 0}
+--- !u!114 &3961617039774091747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8532270811567733966}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3aee3e8e8a0fd8d47be665bd08ce5cc3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.MovementModifiers
+  SlowedIndicator: {fileID: 0}
 --- !u!1001 &266568237879943406
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2345,6 +2406,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: ce7ac7f481a013d4fb6ddf5d633313a8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 9183707888485770689}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: ce7ac7f481a013d4fb6ddf5d633313a8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 32025075583892346}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ce7ac7f481a013d4fb6ddf5d633313a8, type: 3}
       insertIndex: -1

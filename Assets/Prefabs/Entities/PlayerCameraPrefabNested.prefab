@@ -673,7 +673,7 @@ PrefabInstance:
       objectReference: {fileID: 5030346356027429545}
     - target: {fileID: 8326153975630724790, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
       propertyPath: HittableLayers.m_Bits
-      value: 131072
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8532270811567733966, guid: a4a0ee8454c332649a219b9e31369b89, type: 3}
       propertyPath: m_Name

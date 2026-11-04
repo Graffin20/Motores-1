@@ -20,11 +20,22 @@ using UnityEngine;
 ///
 /// Matching (case and separators ignored, Blender "Armature|" prefixes stripped): clip name to clip
 /// name, or, for files holding a single clip, the file name.
+///
+/// Single Clip mode: pick one source and one target clip directly (names don't need to match). If the
+/// lengths are within the tolerance the events keep their exact time in seconds (same frame); if they
+/// differ more, each event is moved to the same percentage of the target clip, since the motion was
+/// most likely retimed (a faster/slower version of the same swing) rather than trimmed.
 /// </summary>
 public class AnimationEventCopier : EditorWindow
 {
     private const float LengthMismatchTolerance = 0.05f;
 
+    private enum CopyMode { SingleClip, Folder }
+
+    [SerializeField] private CopyMode _mode = CopyMode.SingleClip;
+    [SerializeField] private AnimationClip _sourceClip;
+    [SerializeField] private AnimationClip _targetClip;
+    [SerializeField] private float _rescaleTolerance = LengthMismatchTolerance;
     [SerializeField] private DefaultAsset _sourceFolder;
     [SerializeField] private DefaultAsset _targetFolder;
     [SerializeField] private bool _replaceExisting = true;
@@ -36,6 +47,50 @@ public class AnimationEventCopier : EditorWindow
     public static void Open() => GetWindow<AnimationEventCopier>("Anim Event Copier");
 
     private void OnGUI()
+    {
+        _mode = (CopyMode)GUILayout.Toolbar((int)_mode, new[] { "Single Clip", "Folder" });
+        EditorGUILayout.Space();
+
+        if (_mode == CopyMode.SingleClip) DrawSingleClipGUI();
+        else DrawFolderGUI();
+
+        _scroll = EditorGUILayout.BeginScrollView(_scroll);
+        EditorGUILayout.TextArea(_report, GUILayout.ExpandHeight(true));
+        EditorGUILayout.EndScrollView();
+    }
+
+    private void DrawSingleClipGUI()
+    {
+        EditorGUILayout.HelpBox("Copies the events of Source Clip into Target Clip. Lengths within the tolerance keep " +
+                                "the same time in seconds; bigger differences place each event at the same percentage " +
+                                "of the clip. Target can be an .anim or a clip inside an FBX. Run Preview first.", MessageType.Info);
+
+        _sourceClip = (AnimationClip)EditorGUILayout.ObjectField(
+            new GUIContent("Source Clip", "Clip that already has the events."), _sourceClip, typeof(AnimationClip), false);
+        _targetClip = (AnimationClip)EditorGUILayout.ObjectField(
+            new GUIContent("Target Clip", "Clip to receive them."), _targetClip, typeof(AnimationClip), false);
+        _rescaleTolerance = EditorGUILayout.Slider(
+            new GUIContent("Rescale Tolerance", "Length difference (fraction of the source length) above which events are " +
+                                                "placed by percentage instead of seconds. 0 = always by percentage."),
+            _rescaleTolerance, 0f, 0.5f);
+        _replaceExisting = EditorGUILayout.Toggle(
+            new GUIContent("Replace Existing Events", "On: target events become exactly the source's (safe to re-run). Off: add to the existing ones."), _replaceExisting);
+
+        string error = null;
+        if (_sourceClip == null || _targetClip == null) error = "Assign both clips.";
+        else if (_sourceClip == _targetClip) error = "Source and Target are the same clip.";
+        else if (_sourceClip.length <= 0f || _targetClip.length <= 0f) error = "A clip has zero length.";
+        if (error != null) EditorGUILayout.HelpBox(error, MessageType.Warning);
+
+        using (new EditorGUI.DisabledScope(error != null))
+        using (new EditorGUILayout.HorizontalScope())
+        {
+            if (GUILayout.Button("Preview")) RunSingle(apply: false);
+            if (GUILayout.Button("Copy Events")) RunSingle(apply: true);
+        }
+    }
+
+    private void DrawFolderGUI()
     {
         EditorGUILayout.HelpBox("Copies events from each clip in Source to the clip with the same name in Target " +
                                 "(subfolders included). Run Preview first.", MessageType.Info);
@@ -56,13 +111,71 @@ public class AnimationEventCopier : EditorWindow
             if (GUILayout.Button("Preview")) Run(apply: false);
             if (GUILayout.Button("Copy Events")) Run(apply: true);
         }
-
-        _scroll = EditorGUILayout.BeginScrollView(_scroll);
-        EditorGUILayout.TextArea(_report, GUILayout.ExpandHeight(true));
-        EditorGUILayout.EndScrollView();
     }
 
-    // ------------------------------------------------------------------ run
+    // ------------------------------------------------------------------ single clip
+
+    private void RunSingle(bool apply)
+    {
+        var sb = new StringBuilder();
+        string targetPath = AssetDatabase.GetAssetPath(_targetClip);
+        var sourceEvents = AnimationUtility.GetAnimationEvents(_sourceClip);
+        float srcLen = _sourceClip.length, dstLen = _targetClip.length;
+
+        // Seconds when the clips are (nearly) the same length: exact frames survive a re-export.
+        // Percentage when they differ more: the same motion played faster/slower keeps each event on its pose.
+        bool rescale = Mathf.Abs(dstLen - srcLen) > srcLen * _rescaleTolerance;
+        float TargetSeconds(float t) => Mathf.Clamp(rescale ? t / srcLen * dstLen : t, 0f, dstLen);
+
+        sb.AppendLine($"{_sourceClip.name} ({srcLen:0.###}s) -> {_targetClip.name} ({dstLen:0.###}s)");
+        sb.AppendLine(rescale
+            ? $"Lengths differ by {Mathf.Abs(dstLen - srcLen) / srcLen:P0}: events placed by PERCENTAGE."
+            : "Lengths match within tolerance: events keep their time in SECONDS.");
+        sb.AppendLine();
+
+        if (sourceEvents.Length == 0) sb.AppendLine("Source clip has no events.");
+        foreach (var e in sourceEvents)
+        {
+            float t = TargetSeconds(e.time);
+            string clamped = !rescale && e.time > dstLen ? "   CLAMPED to clip end" : "";
+            sb.AppendLine($"  {e.functionName,-24} {e.time:0.###}s ({e.time / srcLen:P1})  ->  {t:0.###}s ({t / dstLen:P1}){clamped}");
+        }
+
+        if (apply)
+        {
+            if (AssetImporter.GetAtPath(targetPath) is ModelImporter importer)
+            {
+                // Clip inside a model: events live in the import settings, in normalized (0..1) time.
+                var infos = importer.clipAnimations;
+                if (infos.Length == 0) infos = importer.defaultClipAnimations;
+                var info = infos.FirstOrDefault(i => i.name == _targetClip.name);
+                if (info == null)
+                {
+                    _report = $"Could not find clip '{_targetClip.name}' in the import settings of {targetPath}.";
+                    return;
+                }
+
+                var existing = _replaceExisting ? new AnimationEvent[0] : info.events;
+                var copied = sourceEvents.Select(e => Copy(e, TargetSeconds(e.time) / dstLen));
+                info.events = existing.Concat(copied).OrderBy(e => e.time).ToArray();
+                importer.clipAnimations = infos;
+                importer.SaveAndReimport();
+            }
+            else
+            {
+                Undo.RegisterCompleteObjectUndo(_targetClip, "Copy animation events");
+                var existing = _replaceExisting ? new AnimationEvent[0] : AnimationUtility.GetAnimationEvents(_targetClip);
+                var copied = sourceEvents.Select(e => Copy(e, TargetSeconds(e.time)));
+                AnimationUtility.SetAnimationEvents(_targetClip, existing.Concat(copied).OrderBy(e => e.time).ToArray());
+                EditorUtility.SetDirty(_targetClip);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
+        _report = $"{(apply ? "Copied" : "Preview:")} {sourceEvents.Length} event(s).\n\n{sb}";
+    }
+
+    // ------------------------------------------------------------------ folder run
 
     private class SourceClip
     {

@@ -24,6 +24,11 @@ namespace StarterAssets.Combat
         [Tooltip("Index into MeleeCombatController.WeaponTraces traced during this stage's Active window " +
                  "(e.g. 0 = right hand, 1 = left hand). -1, or no traces assigned = the hitbox sphere at ApplyHitboxDamage.")]
         public int WeaponTraceIndex = 0;
+        [Tooltip("More WeaponTraces indices traced together with WeaponTraceIndex in this stage (e.g. both legs of a kick). " +
+                 "A target touched by several of them is still hit only once per swing.")]
+        public int[] AdditionalWeaponTraceIndices = new int[0];
+        [Tooltip("A guard that blocks this stage always breaks, whatever its stamina (the defender takes BlockController.ForcedGuardBreakDamageMultiplier of the damage). Boss finisher.")]
+        public bool AlwaysGuardBreaks = false;
     }
 
     /// <summary>
@@ -92,6 +97,8 @@ namespace StarterAssets.Combat
         public float HeavyForwardPushDistance = 2f;
         [Tooltip("Index into WeaponTraces for the heavy attack. -1 = the hitbox sphere.")]
         public int HeavyWeaponTraceIndex = 0;
+        [Tooltip("More WeaponTraces indices traced together with HeavyWeaponTraceIndex during the heavy attack.")]
+        public int[] HeavyAdditionalWeaponTraceIndices = new int[0];
 
         [Header("Hit Detection")]
         [Tooltip("Weapon capsules traced from AE_AttackActive to AE_AttackRecovery (the sword, an enemy's hands). " +
@@ -120,6 +127,8 @@ namespace StarterAssets.Combat
         public bool TrackTargetDuringWindup = false;
         [Tooltip("Max turn rate (degrees/second) while tracking during Windup. Lower = a fast sidestep during the windup can still outpace the turn.")]
         public float WindupTrackingTurnSpeed = 540f;
+        [Tooltip("Max degrees the facing snap at the start of each attack/combo stage may turn. -1 = unlimited (instant snap, default). Slow-turning enemies (boss): a small value, with TrackTargetDuringWindup doing the rest.")]
+        public float MaxFacingSnapDegrees = -1f;
 
         // -- runtime state --
         private AttackPhase _phase = AttackPhase.Idle;
@@ -142,9 +151,9 @@ namespace StarterAssets.Combat
         private bool _isHeavyAttack;
         private bool _hasDamagedThisSwing;
 
-        // Weapon trace of the current swing (null = none / sphere attack). _traceFinalStep makes the
+        // Weapon traces of the current swing (empty = none / sphere attack). _traceFinalStep makes the
         // LateUpdate after AE_AttackRecovery sweep once more, so the last frame's motion isn't lost.
-        private WeaponTrace _activeTrace;
+        private readonly System.Collections.Generic.List<WeaponTrace> _activeTraces = new();
         private bool _traceFinalStep;
         private readonly System.Collections.Generic.List<TraceHit> _traceHits = new();
 
@@ -190,6 +199,11 @@ namespace StarterAssets.Combat
         /// <summary>True while the current attack's parry window is open. Not used by the parry check
         /// itself (that uses the times sent in HitInfo); exposed so an AI can decide when to parry.</summary>
         public bool IsParryWindowOpen => _parryWindowOpen;
+
+        /// <summary>True mid-combo while another light stage can still be buffered (not the last stage, not a
+        /// heavy, nothing buffered yet). AI that drives a full combo (BossAI) requests only while this is true,
+        /// so no request is left over after the final stage.</summary>
+        public bool CanBufferNextComboStage => _phase != AttackPhase.Idle && !_bufferedAttack && CanContinueLightCombo();
 
         private void Awake()
         {
@@ -381,7 +395,10 @@ namespace StarterAssets.Combat
             direction.y = 0f; // Only rotate around Y axis
             if (direction.sqrMagnitude < 0.001f) return; // Avoid degenerate case (e.g. camera looking straight down)
 
-            transform.rotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+            Quaternion targetRotation = Quaternion.LookRotation(direction.normalized, Vector3.up);
+            transform.rotation = MaxFacingSnapDegrees < 0f
+                ? targetRotation
+                : Quaternion.RotateTowards(transform.rotation, targetRotation, MaxFacingSnapDegrees);
         }
 
         /// <summary>Turns toward lookAtReference only while in Windup. Animation events run after Update,
@@ -441,12 +458,13 @@ namespace StarterAssets.Combat
             if (_phase != AttackPhase.Windup) return;
             EnterPhase(AttackPhase.Active);
 
-            _activeTrace = CurrentWeaponTrace();
+            _activeTraces.Clear();
+            CollectCurrentWeaponTraces(_activeTraces);
             _traceFinalStep = false;
-            if (_activeTrace != null)
+            if (_activeTraces.Count > 0)
             {
-                _damagedThisSwing.Clear(); // one hit per target for the whole window
-                _activeTrace.BeginTrace();
+                _damagedThisSwing.Clear(); // one hit per target for the whole window, across all traces
+                foreach (var trace in _activeTraces) trace.BeginTrace();
             }
         }
 
@@ -467,7 +485,7 @@ namespace StarterAssets.Combat
         public void AE_AttackRecovery()
         {
             if (_phase != AttackPhase.Active) return;
-            if (_activeTrace != null) _traceFinalStep = true;
+            if (_activeTraces.Count > 0) _traceFinalStep = true;
             EnterPhase(AttackPhase.Recovery);
         }
 
@@ -618,7 +636,7 @@ namespace StarterAssets.Combat
         public void ApplyHitboxDamage()
         {
             if (_phase != AttackPhase.Active || _hasDamagedThisSwing) return;
-            if (CurrentWeaponTrace() != null) return;
+            if (HasWeaponTrace()) return;
 
             Vector3 center = transform.TransformPoint(HitboxOffset);
             _traceHits.Clear();
@@ -635,36 +653,70 @@ namespace StarterAssets.Combat
         // LateUpdate: after the Animator has posed the weapon this frame.
         private void LateUpdate()
         {
-            if (_activeTrace == null) return;
+            if (_activeTraces.Count == 0) return;
             if (_phase != AttackPhase.Active && !_traceFinalStep)
             {
                 StopTrace(); // force-advanced/cancelled without AE_AttackRecovery
                 return;
             }
 
+            // All traces of the swing into one list: ResolveHits' per-swing dedupe then hits a target touched
+            // by both legs only once.
             _traceHits.Clear();
-            _activeTrace.Sweep(HittableLayers, _traceHits);
+            foreach (var trace in _activeTraces) trace.Sweep(HittableLayers, _traceHits);
             if (_traceFinalStep) StopTrace();
             if (_traceHits.Count > 0) ResolveHits(_traceHits, logMisses: false);
         }
 
         private void StopTrace()
         {
-            if (_activeTrace != null) _activeTrace.EndTrace();
-            _activeTrace = null;
+            foreach (var trace in _activeTraces) trace.EndTrace();
+            _activeTraces.Clear();
             _traceFinalStep = false;
         }
 
-        /// <summary>The weapon trace the current attack uses, or null for the sphere.</summary>
-        private WeaponTrace CurrentWeaponTrace()
+        /// <summary>Adds the valid weapon traces the current attack uses (main index + additional ones, no
+        /// duplicates). Nothing added = the attack uses the hitbox sphere.</summary>
+        private void CollectCurrentWeaponTraces(System.Collections.Generic.List<WeaponTrace> results)
         {
-            if (_phase == AttackPhase.Idle) return null;
-            int index = _isHeavyAttack ? HeavyWeaponTraceIndex
-                      : _comboIndex >= 0 && _comboIndex < ComboStages.Length ? ComboStages[_comboIndex].WeaponTraceIndex
-                      : -1;
-            if (index < 0 || WeaponTraces == null || index >= WeaponTraces.Length) return null;
+            if (_phase == AttackPhase.Idle) return;
+
+            int mainIndex;
+            int[] additional;
+            if (_isHeavyAttack)
+            {
+                mainIndex = HeavyWeaponTraceIndex;
+                additional = HeavyAdditionalWeaponTraceIndices;
+            }
+            else if (_comboIndex >= 0 && _comboIndex < ComboStages.Length)
+            {
+                mainIndex = ComboStages[_comboIndex].WeaponTraceIndex;
+                additional = ComboStages[_comboIndex].AdditionalWeaponTraceIndices;
+            }
+            else return;
+
+            AddWeaponTrace(mainIndex, results);
+            if (additional != null)
+            {
+                foreach (int index in additional) AddWeaponTrace(index, results);
+            }
+        }
+
+        private void AddWeaponTrace(int index, System.Collections.Generic.List<WeaponTrace> results)
+        {
+            if (index < 0 || WeaponTraces == null || index >= WeaponTraces.Length) return;
             var trace = WeaponTraces[index];
-            return trace != null && trace.IsValid ? trace : null;
+            if (trace != null && trace.IsValid && !results.Contains(trace)) results.Add(trace);
+        }
+
+        private readonly System.Collections.Generic.List<WeaponTrace> _traceQuery = new();
+
+        /// <summary>True if the current attack has at least one valid weapon trace (so the sphere is skipped).</summary>
+        private bool HasWeaponTrace()
+        {
+            _traceQuery.Clear();
+            CollectCurrentWeaponTraces(_traceQuery);
+            return _traceQuery.Count > 0;
         }
 
         /// <summary>
@@ -686,6 +738,7 @@ namespace StarterAssets.Combat
                 ParryWindowOpenTime = _parryWindowOpenTime,
                 // A window still open at the hit counts presses up to this moment (the moment of contact).
                 ParryWindowCloseTime = Mathf.Min(_parryWindowCloseTime, Time.time),
+                ForceGuardBreak = !_isHeavyAttack && ComboStages[_comboIndex].AlwaysGuardBreaks,
             };
 
             bool wasParried = false;

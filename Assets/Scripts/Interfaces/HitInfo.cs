@@ -30,6 +30,19 @@ public struct HitInfo
     /// <summary>Direction the weapon was moving at the contact (normalized), e.g. to aim sparks along the swing.</summary>
     public Vector3 ContactDirection;
 
+    /// <summary>Ignores the defender's block AND parry entirely (boss fire cone, stomp): only i-frames avoid it.</summary>
+    public bool Unblockable;
+    /// <summary>If the defender blocks it (facing, guard up), it is always a guard break regardless of stamina
+    /// (boss combo finisher). The damage that goes through is the defender's BlockController.ForcedGuardBreakDamageMultiplier.</summary>
+    public bool ForceGuardBreak;
+    /// <summary>Damage only: no knockback, no stagger, no hit-stop/shake (damage-over-time ticks).</summary>
+    public bool DamageOnly;
+    /// <summary>Stagger trigger a plain hit plays instead of the defender's Hit trigger (e.g. "Stunned" for the
+    /// boss stomp). Null/empty = the defender's default. Falls back to Hit if the Animator lacks it.</summary>
+    public string StaggerAnimationTrigger;
+    /// <summary>Dev safety timeout for that stagger (the clip's AE_StaggerEnd ends it). 0 = the defender's default.</summary>
+    public float StaggerSafetyDuration;
+
     public HitInfo(float damage, Vector3 sourcePosition,
                    float knockbackDistanceMultiplier = 1f, float knockbackDurationMultiplier = 1f)
     {
@@ -44,6 +57,11 @@ public struct HitInfo
         HasContact = false;
         ContactPoint = Vector3.zero;
         ContactDirection = Vector3.zero;
+        Unblockable = false;
+        ForceGuardBreak = false;
+        DamageOnly = false;
+        StaggerAnimationTrigger = null;
+        StaggerSafetyDuration = 0f;
     }
 }
 

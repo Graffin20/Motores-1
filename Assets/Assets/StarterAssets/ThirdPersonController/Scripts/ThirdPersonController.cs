@@ -129,6 +129,7 @@ namespace StarterAssets
         private float _terminalVelocity = 53.0f;
 
         private Health _health;
+        private MovementModifiers _movementModifiers;
 
         // timeout deltatime
         private float _jumpTimeoutDelta;
@@ -234,6 +235,7 @@ namespace StarterAssets
             }
 
             _health = GetComponent<Health>();
+            _movementModifiers = GetComponent<MovementModifiers>(); // optional: no slow effects
         }
 
         private void Start()
@@ -276,6 +278,10 @@ namespace StarterAssets
             // Health disables the CharacterController on death; Move() on a disabled controller errors.
             // Camera rotation (LateUpdate) keeps running so the player can still look around.
             if (!_controller.enabled) return;
+
+            // Held by a boss grab: Health pins the position to the boss's hand every LateUpdate. Even the
+            // gravity-only Move() of a lockout would fight that (two owners of one transform).
+            if (_health != null && _health.IsHeld) return;
 
             JumpAndGravity();
             GroundedCheck();
@@ -389,6 +395,8 @@ namespace StarterAssets
             float targetSpeed = CurrentMovementMode == MovementMode.LockedStrafe
                 ? (_input.sprint ? StrafeSpeed * StrafeSprintMultiplier : StrafeSpeed)
                 : (_input.sprint ? SprintSpeed : MoveSpeed);
+
+            if (_movementModifiers != null) targetSpeed *= _movementModifiers.SpeedMultiplier;
 
             if (_input.move == Vector2.zero) targetSpeed = 0.0f;
 
