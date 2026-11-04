@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 486756}
   - component: {fileID: 3373172}
   - component: {fileID: 2305764}
+  - component: {fileID: 4626390248407214726}
   m_Layer: 0
   m_Name: Boletus_edulis_1_
   m_TagString: Untagged
@@ -90,3 +91,26 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!136 &4626390248407214726
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 164708}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1.6612695
+  m_Height: 7.2032394
+  m_Direction: 1
+  m_Center: {x: -0.07876528, y: 3.6, z: 0}

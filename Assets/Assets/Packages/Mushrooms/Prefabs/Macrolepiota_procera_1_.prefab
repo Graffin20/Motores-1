@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 485664}
   - component: {fileID: 3358174}
   - component: {fileID: 2350780}
+  - component: {fileID: 678156293029727738}
   m_Layer: 0
   m_Name: Macrolepiota_procera_1_
   m_TagString: Untagged
@@ -90,3 +91,26 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!136 &678156293029727738
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 176410}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.48793793
+  m_Height: 7.476223
+  m_Direction: 1
+  m_Center: {x: 0, y: 3.3, z: 0}

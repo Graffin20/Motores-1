@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 426338}
   - component: {fileID: 3315320}
   - component: {fileID: 2309122}
-  - component: {fileID: 4676537815641093890}
+  - component: {fileID: 6604645810713187527}
   m_Layer: 0
   m_Name: Amanitaceae_1_
   m_TagString: Untagged
@@ -91,7 +91,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &4676537815641093890
+--- !u!136 &6604645810713187527
 CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -110,7 +110,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 3.652903
-  m_Height: 8.29
+  m_Radius: 0.89657867
+  m_Height: 8.85363
   m_Direction: 1
-  m_Center: {x: 0, y: 3.6470683, z: 0}
+  m_Center: {x: 0.0031289721, y: 3, z: -0.12554148}
