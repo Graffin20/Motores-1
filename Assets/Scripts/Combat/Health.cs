@@ -16,6 +16,12 @@ namespace StarterAssets.Combat
         [Tooltip("Off for bosses (poise): plain hits deal damage and knockback but never interrupt. Being parried still staggers (that calls Stagger directly).")]
         public bool StaggerOnPlainHits = true;
 
+        [Header("Audio")]
+        [Tooltip("Sonido al recibir daño (golpe normal o guardia rota). Opcional.")]
+        public SFXPlayer HurtSfx;
+        [Tooltip("Sonido al morir. Opcional.")]
+        public SFXPlayer DeathSfx;
+
         [Header("Death")]
 
         public string DieAnimationTrigger = "Die";
@@ -171,6 +177,11 @@ namespace StarterAssets.Combat
         {
             HitResult result = ResolveHit(hit);
             if (result != HitResult.Ignored) HitReceived?.Invoke(hit, result);
+
+            // Audio: solo con daño real (no suena al bloquear, hacer parry ni esquivar con roll)
+            if (HurtSfx != null && (result == HitResult.Hit || result == HitResult.GuardBroken))
+                HurtSfx.Play();
+
             return result;
         }
 
@@ -422,6 +433,7 @@ namespace StarterAssets.Combat
             _isBeingKnockedBack = false;
             if (_controller != null) _controller.enabled = false;
 
+            if (DeathSfx != null) DeathSfx.Play();
             Died?.Invoke(killSourcePosition);
 
             Destroy(gameObject, DestroyDelayAfterDeath);

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: e360892950ffafd41ba3ccfacc68b48a
+timeCreated: 1427037252
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Models/Materials/leaf.mat
+  uploadId: 218476

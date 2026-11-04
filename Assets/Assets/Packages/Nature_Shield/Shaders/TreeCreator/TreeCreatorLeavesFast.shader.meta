@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: fc9971f2eb05e47058f5ada245a53ee9
+timeCreated: 1429198454
+licenseType: Store
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Shaders/TreeCreator/TreeCreatorLeavesFast.shader
+  uploadId: 218476

@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 47f2985730c2dd74c859e9ccdc35e344
+labels:
+- Weapon
+timeCreated: 1429207562
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: nature_shield
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Prefabs/LODs/Nature_Shield_LOD0.prefab
+  uploadId: 218476

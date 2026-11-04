@@ -115,6 +115,10 @@ namespace StarterAssets.Combat
         [Tooltip("Dev safety fallback only: the stagger normally ends via AE_StaggerEnd on the Parried clip.")]
         public float ParriedStaggerSafetyDuration = 1.5f;
 
+        [Header("Audio")]
+        [Tooltip("Sonido del golpe (swing). Opcional.")]
+        public SFXPlayer SwingSfx;
+
         [Header("Attack Movement")]
         [Tooltip("Duration (in seconds) over which the forward push is applied.")]
         public float AttackPushDuration = 0.3f;
@@ -457,6 +461,7 @@ namespace StarterAssets.Combat
         {
             if (_phase != AttackPhase.Windup) return;
             EnterPhase(AttackPhase.Active);
+            if (SwingSfx != null) SwingSfx.PlayAt(_isHeavyAttack ? ComboStages.Length : _comboIndex);
 
             _activeTraces.Clear();
             CollectCurrentWeaponTraces(_activeTraces);

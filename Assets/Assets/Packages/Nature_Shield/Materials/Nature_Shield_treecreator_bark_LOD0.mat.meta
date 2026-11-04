@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: a7ad7079ffb67b4468713aa0d4f71b00
+timeCreated: 1427037444
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: nature_shield
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Materials/Nature_Shield_treecreator_bark_LOD0.mat
+  uploadId: 218476

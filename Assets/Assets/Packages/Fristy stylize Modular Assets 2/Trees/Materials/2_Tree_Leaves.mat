@@ -13,6 +13,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   version: 2
+  hdPluginSubTargetMaterialVersions:
+    m_Keys: []
+    m_Values: 
 --- !u!114 &-2229225233016467977
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -270,7 +273,7 @@ Material:
     - _Cull: 0
     - _CullMode: 0
     - _CullModeForward: 0
-    - _Cutoff: 0.5
+    - _Cutoff: 0
     - _Cutout: 0.294
     - _DepthOffsetEnable: 0
     - _DetailAlbedoMapScale: 1
