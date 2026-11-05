@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace StarterAssets.Combat
 {
@@ -17,10 +18,13 @@ namespace StarterAssets.Combat
         public bool StaggerOnPlainHits = true;
 
         [Header("Audio")]
+        [SerializeField] private AudioSource audioSource;
+
         [Tooltip("Sonido al recibir daño (golpe normal o guardia rota). Opcional.")]
         public SFXPlayer HurtSfx;
         [Tooltip("Sonido al morir. Opcional.")]
         public SFXPlayer DeathSfx;
+        public bool playerVoiceLine;
 
         [Header("Death")]
 
@@ -435,7 +439,13 @@ namespace StarterAssets.Combat
 
             if (DeathSfx != null) DeathSfx.Play();
             Died?.Invoke(killSourcePosition);
-
+            if (playerVoiceLine == true)
+            {
+                if (audioSource != null)
+                {
+                    audioSource.Play();
+                }
+            }
             Destroy(gameObject, DestroyDelayAfterDeath);
         }
     }
