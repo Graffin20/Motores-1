@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Audio;
 
 namespace StarterAssets.Combat
 {
@@ -34,6 +35,11 @@ namespace StarterAssets.Combat
     /// </summary>
     public class BlockController : MonoBehaviour, IInvulnerabilitySource
     {
+
+        [Header("Audio")]
+        [SerializeField] private AudioSource parrySound;
+        [SerializeField] private AudioSource blockSound;
+
         [Header("Animation")]
         [Tooltip("Animator bool parameter that stays true for as long as blocking is held. Optional now that the masked layer's weight is what actually controls visibility, but harmless to keep if other systems read it.")]
         public string BlockAnimatorBool = "IsBlocking";
@@ -222,13 +228,22 @@ namespace StarterAssets.Combat
             if (_stamina == null || StaminaCostPerDamage <= 0f)
             {
                 damageThrough = 0f;
+                if (blockSound != null)
+                {
+                    blockSound.Play();
+                }
                 return BlockResolution.Blocked;
+
             }
 
             float cost = hit.Damage * StaminaCostPerDamage;
             if (_stamina.TrySpend(cost))
             {
                 damageThrough = 0f;
+                if (blockSound != null)
+                {
+                    blockSound.Play();
+                }
                 return BlockResolution.Blocked;
             }
 
@@ -275,6 +290,10 @@ namespace StarterAssets.Combat
                 _animator.SetTrigger(_parryTriggerHash);
                 _isParrying = true;
                 _parrySafetyTimer = ParrySafetyDuration;
+            }
+            if (parrySound != null)
+            {
+                parrySound.Play();
             }
 
             PushNearbyCharacters();
