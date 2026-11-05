@@ -32,7 +32,9 @@ namespace StarterAssets.Combat
         public float DestroyDelayAfterDeath = 5f;
         [Tooltip("Activalo solo en enemigos: al morir suma una kill al KillCounter.")]
         public bool CountsAsKill = false;
-
+        [Tooltip("Game object to instantiate at the character's position when they die. Optional.")]
+        public GameObject DeathEffectPrefab;
+        public Transform dropSpawnPosition; // Optional: if set, the death effect spawns at this position instead of the character's position
 
         [Header("Knockback")]
         [Tooltip("Horizontal distance covered by the knockback push.")]
@@ -420,6 +422,18 @@ namespace StarterAssets.Combat
             CancelActions();
 
             if (_hasAnimator) _animator.SetTrigger(_dieTriggerHash);
+
+            // Instantiate death effect at character position
+            if (DeathEffectPrefab != null)
+            {
+                if (dropSpawnPosition != null)
+                {
+                    Instantiate(DeathEffectPrefab, dropSpawnPosition.position, Quaternion.identity);
+                } else
+                {
+                    Instantiate(DeathEffectPrefab, transform.position, Quaternion.identity);
+                }
+            }
 
             // Stop the scripts that DRIVE movement/combat, rather than disabling the
             // CharacterController component that they call into.
