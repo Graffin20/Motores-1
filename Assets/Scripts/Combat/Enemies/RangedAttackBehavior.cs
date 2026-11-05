@@ -53,6 +53,10 @@ namespace StarterAssets.Combat
         [Tooltip("Tiempo que queda quieto después de disparar.")]
         public float RecoveryTime = 0.4f;
 
+        [Header("Audio")]
+        [Tooltip("Sonido al empezar el ataque (carga o grito). Opcional.")]
+        public SFXPlayer AttackSfx;
+
         [Header("Animation (Optional)")]
         [Tooltip("Nombre del Trigger del Animator a disparar al atacar. Vacío = sin animación.")]
         public string AttackTriggerName = "Attack";
@@ -131,6 +135,7 @@ namespace StarterAssets.Combat
         private IEnumerator AttackRoutine(Transform target)
         {
             _isAttacking = true;
+            if (AttackSfx != null) AttackSfx.Play();
 
             if (UsesAnimationEvent)
             {
