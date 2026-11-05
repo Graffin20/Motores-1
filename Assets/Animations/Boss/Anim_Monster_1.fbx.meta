@@ -62,6 +62,13 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
+      - time: 0.17252396
+        functionName: AE_SoundCombo
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 0.19160667
         functionName: AE_AttackActive
         data: 
@@ -133,6 +140,13 @@ ModelImporter:
         floatParameter: 0
         intParameter: 0
         messageOptions: 0
+      - time: 0.21086262
+        functionName: AE_SoundCombo
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
       - time: 0.24956027
         functionName: AE_AttackRecovery
         data: 
@@ -185,6 +199,13 @@ ModelImporter:
       events:
       - time: 0.21523999
         functionName: AE_AttackActive
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.23642172
+        functionName: AE_SoundCombo
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
@@ -249,6 +270,13 @@ ModelImporter:
         messageOptions: 0
       - time: 0.92876345
         functionName: AE_SpecialAttackEnd
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.31188118
+        functionName: AE_SoundFire
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0
@@ -660,6 +688,13 @@ ModelImporter:
         messageOptions: 0
       - time: 0.92876345
         functionName: AE_SpecialAttackEnd
+        data: 
+        objectReferenceParameter: {instanceID: 0}
+        floatParameter: 0
+        intParameter: 0
+        messageOptions: 0
+      - time: 0.7227723
+        functionName: AE_SoundStomp
         data: 
         objectReferenceParameter: {instanceID: 0}
         floatParameter: 0

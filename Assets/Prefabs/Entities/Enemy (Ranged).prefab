@@ -345,11 +345,15 @@ MonoBehaviour:
   HitAnimationTrigger: Hit
   HitStunSafetyDuration: 1
   StaggerOnPlainHits: 1
+  audioSource: {fileID: 0}
   HurtSfx: {fileID: 0}
   DeathSfx: {fileID: 0}
+  playerVoiceLine: 0
   DieAnimationTrigger: Die
   DestroyDelayAfterDeath: 5
   CountsAsKill: 0
+  DeathEffectPrefab: {fileID: 0}
+  dropSpawnPosition: {fileID: 0}
   KnockbackDistance: 1
   KnockbackDuration: 0.2
 --- !u!114 &5096197736139240735
@@ -432,7 +436,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::StarterAssets.Combat.HitFeedback
   Hit:
-    Fx: {fileID: 1229420507550489884, guid: 39ceb4ddbac1d994292efe31aa7012dc, type: 3}
+    Fx: {fileID: 7275548786892498063, guid: 5bc9a0bf98f67d240a936bf476ba2082, type: 3}
     SpawnPoint: {fileID: 0}
     HitStop: 0.1
     Shake: 0.3
