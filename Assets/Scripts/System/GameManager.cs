@@ -16,4 +16,14 @@ public class GameManager : MonoBehaviour
 
         Instance = this;
     }
+
+    private void Update()
+    {
+        if (levelComplete)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
+    }
 }
