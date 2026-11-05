@@ -143,7 +143,7 @@ AudioMixerController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MusicMixer
+  m_Name: MainMixer
   m_OutputGroup: {fileID: 0}
   m_MasterGroup: {fileID: 24300002}
   m_Snapshots:
@@ -227,8 +227,13 @@ AudioMixerSnapshotController:
   m_FloatValues:
     727b3630f677fd94cb408aae8b01fbec: -25.086687
     9062e933defb2d247992860b2f7ab38f: -80
+    6792cc53ec6cd4944b5857ebe29f8479: 9.925883
+    1d4f1626fde3ffb43ac4d71151f60df1: 5.1526933
+    8983c98613ff9fe45bdc1bf16d624491: -5.3230715
     cf212f19d7a486f46b3d414766161fc1: -80
+    b0e58a39380cd2a4186feb6aa30fe92a: 9.925883
     1a81cb7a26ecfca41a3c727878d6dcb2: -80
+    c7f863ed843d0194ba810503385e2df3: -4.560346
   m_TransitionOverrides: {}
 --- !u!245 &1168177042387723714
 AudioMixerSnapshotController:
@@ -456,9 +461,12 @@ AudioMixerSnapshotController:
   m_AudioMixer: {fileID: 24100000}
   m_SnapshotID: 2ee13cd4b0897604dbdfd03ce48223c7
   m_FloatValues:
+    6792cc53ec6cd4944b5857ebe29f8479: 9.925883
     be29e8830a5c0874e88105e2ad4d5d9c: -10.345207
+    1d4f1626fde3ffb43ac4d71151f60df1: -5.3230715
     8983c98613ff9fe45bdc1bf16d624491: -9.833286
     cf212f19d7a486f46b3d414766161fc1: -19.928473
+    b0e58a39380cd2a4186feb6aa30fe92a: -10.345207
     1a81cb7a26ecfca41a3c727878d6dcb2: -2.5738313
     c7f863ed843d0194ba810503385e2df3: -5.3230715
   m_TransitionOverrides: {}
