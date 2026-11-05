@@ -7,6 +7,9 @@ public class FrogDialogue : MonoBehaviour, IInteractable
     public DialogueUI dialoguePrefab;
     private DialogueUI currentDialogue;
 
+    [Header("Audio")]
+    [SerializeField] private AudioSource audioSource;
+
     [Header("Frog's message")]
     [TextArea(3, 5)]
     public string message = "¡Greetings, Traveler! Your salvation lies beyond a locked passage. Search [LUGAR], for only its key holds the power to set you free.";
@@ -20,6 +23,12 @@ public class FrogDialogue : MonoBehaviour, IInteractable
 
             currentDialogue = dialog;
             currentDialogue.SetDialogueText("Mr. Frog",message);
+
+            if (audioSource != null)
+            {
+                audioSource.Play();
+            }
+
             Debug.Log("Started interacting with the frog.");
         }
         else

@@ -48,6 +48,7 @@ ExportedObj/
 *.mdb
 *.opendb
 *.VC.db
+*.md
 
 # Unity3D generated meta files
 *.pidb.meta
@@ -73,3 +74,9 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# WebGL build output (rebuild locally instead of committing)
+/Delicarium*/
+
+# JetBrains Rider project settings (per-user IDE state)
+.idea/

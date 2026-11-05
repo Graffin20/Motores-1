@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: e35c1c62be3ef48f899839dcd735191b
+timeCreated: 1429198452
+licenseType: Store
+ShaderImporter:
+  defaultTextures: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Shaders/TreeCreator/TreeCreatorLeavesRendertex.shader
+  uploadId: 218476

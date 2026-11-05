@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: fc929bdf47dc0d2408eb1a33f79e6737
+timeCreated: 1436610994
+licenseType: Store
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 39867
+  packageName: Mushrooms
+  packageVersion: 1.0
+  assetPath: Assets/Mushrooms/Demo_scene/mushrooms_demo_scene.unity
+  uploadId: 932026

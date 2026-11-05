@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 68cfa7e7f88989e42bdcbc203158f5aa
+timeCreated: 1436476400
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 39867
+  packageName: Mushrooms
+  packageVersion: 1.0
+  assetPath: Assets/Mushrooms/Materials/Armillaria_Lactarius_Lepista_nuda_normal.mat
+  uploadId: 932026

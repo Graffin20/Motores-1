@@ -14,20 +14,20 @@ TagManager:
   - UI
   - Player
   - Enemies
+  - 
+  - Terrain
+  - Pintar
   - Pickup
+  - Floor
   - 
   - 
   - 
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - PlayerLimbs
+  - DynamicObject
+  - Ragdoll
+  - PlayerHurtbox
   - 
   - 
   - 

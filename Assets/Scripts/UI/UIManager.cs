@@ -15,10 +15,12 @@ public class UIManager : MonoBehaviour
         if (Instance != null && Instance != this)
         {
             Destroy(this.gameObject);
+            return;
         }
 
+        // No DontDestroyOnLoad: the panels it drives belong to the scene, so a surviving UIManager would
+        // point at destroyed panels after a reload (Game Over > Restart). Each scene brings its own.
         Instance = this;
-        DontDestroyOnLoad(this.gameObject);
     }
 
     public void ToggleFocusTextPanel(bool active)

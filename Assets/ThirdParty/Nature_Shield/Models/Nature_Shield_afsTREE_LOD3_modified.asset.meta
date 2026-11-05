@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 441edaccae862d54b970832c2b699b47
+timeCreated: 1429248341
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: nature_shield
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Models/Nature_Shield_afsTREE_LOD3_modified.asset
+  uploadId: 218476

@@ -1,0 +1,313 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace StarterAssets.Combat
+{
+    public class LockOnController : MonoBehaviour
+    {
+        [Header("Targeting Settings")]
+        public float maxLockRange = 15f;
+        public LayerMask targetLayer;
+        public LayerMask obstacleLayer;
+        public float maxLockAngle = 75f;
+        public GameObject lockOnUIPrefab;
+
+        [Tooltip("Optional override for the camera used to score targets and check line of sight. Leave empty to use ThirdPersonController's GameplayCamera.")]
+        [SerializeField] private Transform _viewCameraTransform;
+
+        private ILockable _currentTarget;
+        private GameObject _activeUIInstance;
+        private Transform _transformCache;
+        private ThirdPersonController _thirdPersonController;
+        private CombatStateTracker _combatState;
+
+        public bool IsLockedOn => IsTargetUsable(_currentTarget);
+        public Transform CurrentTargetTransform => IsTargetUsable(_currentTarget) ? _currentTarget.Transform : null;
+
+        /// <summary>
+        /// ILockable is an interface, so a plain `== null` / `?.` on it can't see Unity's "destroyed object"
+        /// null, and touching .Transform on a destroyed MonoBehaviour throws. Check the underlying Unity
+        /// object explicitly before touching anything on it.
+        /// </summary>
+        private static bool IsTargetUsable(ILockable target)
+        {
+            if (target == null) return false;
+            if (target is UnityEngine.Object unityObject && unityObject == null) return false; // destroyed
+            return target.Transform != null && target.IsAlive;
+        }
+
+        private void Awake()
+        {
+            _transformCache = transform;
+            _thirdPersonController = GetComponent<ThirdPersonController>(); // optional camera source
+            _combatState = GetComponent<CombatStateTracker>();               // optional: null = switch among targets in view
+        }
+
+        private void Start()
+        {
+            // Not in Awake: ThirdPersonController resolves its camera in its own Awake, which may run
+            // after this one. Camera.main isn't used — with several MainCamera-tagged cameras it can
+            // resolve to the wrong one.
+            ResolveViewCamera();
+        }
+
+        private void ResolveViewCamera()
+        {
+            if (_viewCameraTransform == null && _thirdPersonController != null)
+            {
+                _viewCameraTransform = _thirdPersonController.CameraTransform;
+            }
+        }
+
+        private void Update()
+        {
+            if (_currentTarget != null)
+            {
+                if (!IsTargetUsable(_currentTarget))
+                {
+                    // Target died (or was destroyed): move to the next enemy instead of dropping the lock.
+                    // Leaving range / losing sight still drops it, as before.
+                    if (!TryRetargetAfterDeath()) ClearLock();
+                }
+                else if (Vector3.Distance(_transformCache.position, _currentTarget.Transform.position) > maxLockRange ||
+                         HasLineOfSightObstacle(_currentTarget.Transform))
+                {
+                    ClearLock();
+                }
+            }
+        }
+
+        public void ToggleLockOn()
+        {
+            Debug.Log("[LockOn] ToggleLockOn called! Current IsLockedOn: " + IsLockedOn);
+            if (IsLockedOn)
+            {
+                ClearLock();
+            }
+            else
+            {
+                AcquireBestTarget();
+            }
+        }
+
+        public void AcquireBestTarget()
+        {
+            ResolveViewCamera();
+
+            Collider[] hits = Physics.OverlapSphere(_transformCache.position, maxLockRange, targetLayer);
+            Debug.Log($"[LockOn] OverlapSphere found {hits.Length} colliders on targetLayer.");
+
+            ILockable bestTarget = null;
+            float bestScore = float.MaxValue;
+
+            Vector3 searchOrigin = _viewCameraTransform != null ? _viewCameraTransform.position : _transformCache.position;
+            Vector3 searchDirection = _viewCameraTransform != null ? _viewCameraTransform.forward : _transformCache.forward;
+
+            foreach (var hit in hits)
+            {
+                if (hit == null) continue;
+
+                Debug.Log($"[LockOn] Checking collider on GameObject: {hit.gameObject.name}");
+
+                if (!hit.TryGetComponent<ILockable>(out var target))
+                {
+                    Debug.Log($"[LockOn] -> REJECTED: GameObject '{hit.gameObject.name}' does NOT have an ILockable component!");
+                    continue;
+                }
+
+                if (!target.IsAlive)
+                {
+                    Debug.Log($"[LockOn] -> REJECTED: Target is not alive.");
+                    continue;
+                }
+
+                if (target.Transform == _transformCache) continue;
+
+                Vector3 toTarget = target.Transform.position - searchOrigin;
+                float distance = toTarget.magnitude;
+                float angle = Vector3.Angle(searchDirection, toTarget);
+
+                Debug.Log($"[LockOn] -> Candidate found: Distance = {distance:F2}, Angle = {angle:F2}");
+
+                if (angle > maxLockAngle)
+                {
+                    Debug.Log($"[LockOn] -> REJECTED: Angle {angle} exceeds maxLockAngle {maxLockAngle}.");
+                    continue;
+                }
+
+                if (HasLineOfSightObstacle(target.Transform))
+                {
+                    Debug.Log($"[LockOn] -> REJECTED: Line of sight blocked by an obstacle.");
+                    continue;
+                }
+
+                float score = angle * 1.5f + distance;
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    bestTarget = target;
+                }
+            }
+
+            if (bestTarget != null)
+            {
+                Debug.Log($"[LockOn] SUCCESS! Locked onto: {bestTarget.Transform.name}");
+                SetTarget(bestTarget);
+            }
+            else
+            {
+                Debug.Log("[LockOn] FAILED: No valid targets met all criteria.");
+            }
+        }
+
+        /// <summary>
+        /// Cycles the lock to the next target, ordered left to right around the player as seen from the
+        /// camera, wrapping at the ends. inputDir.x > 0 = next to the right, below 0 = to the left.
+        ///
+        /// Candidates: while in combat, every enemy currently engaging the player (CombatStateTracker), even
+        /// behind the player, since the locked camera turns to face them. Outside combat (or without a
+        /// tracker) it falls back to the lockable targets in range and in front, like AcquireBestTarget.
+        /// Either way a candidate must be alive, within maxLockRange and in line of sight, otherwise Update
+        /// would drop the lock right after switching.
+        /// </summary>
+        public void SwitchTarget(Vector2 inputDir)
+        {
+            if (!IsLockedOn || Mathf.Approximately(inputDir.x, 0f)) return;
+            ResolveViewCamera();
+
+            var candidates = GatherSwitchCandidates();
+            if (!candidates.Contains(_currentTarget)) candidates.Add(_currentTarget);
+            if (candidates.Count < 2) return;
+
+            candidates.Sort((a, b) => YawFromView(a.Transform).CompareTo(YawFromView(b.Transform)));
+            int index = candidates.IndexOf(_currentTarget);
+            int step = inputDir.x > 0f ? 1 : -1;
+            SetTarget(candidates[(index + step + candidates.Count) % candidates.Count]);
+        }
+
+        /// <summary>
+        /// After the locked target dies: lock the best remaining candidate, from the same pool as
+        /// SwitchTarget (engaged enemies while in combat, else targets in range and view): the one closest
+        /// to the character. False = nobody left.
+        /// </summary>
+        private bool TryRetargetAfterDeath()
+        {
+            ResolveViewCamera();
+
+            ILockable best = null;
+            float bestDistance = float.MaxValue;
+            foreach (var candidate in GatherSwitchCandidates())
+            {
+                float distance = (candidate.Transform.position - _transformCache.position).sqrMagnitude;
+                if (distance < bestDistance)
+                {
+                    bestDistance = distance;
+                    best = candidate;
+                }
+            }
+
+            if (best == null) return false;
+            SetTarget(best);
+            return true;
+        }
+
+        private List<ILockable> GatherSwitchCandidates()
+        {
+            var result = new List<ILockable>();
+
+            if (_combatState != null && _combatState.IsInCombat && _combatState.EngagedEnemyCount > 0)
+            {
+                foreach (var enemy in _combatState.EngagedEnemies)
+                {
+                    // Registered as the enemy's EnemyAI component; the ILockable sits on the same object
+                    // or a relative of it.
+                    if (!(enemy is Component component) || component == null) continue;
+                    var target = component.GetComponentInParent<ILockable>() ?? component.GetComponentInChildren<ILockable>();
+                    if (IsSwitchCandidate(target, requireInView: false) && !result.Contains(target)) result.Add(target);
+                }
+                return result;
+            }
+
+            foreach (var hit in Physics.OverlapSphere(_transformCache.position, maxLockRange, targetLayer))
+            {
+                if (hit != null && hit.TryGetComponent<ILockable>(out var target) &&
+                    IsSwitchCandidate(target, requireInView: true) && !result.Contains(target))
+                    result.Add(target);
+            }
+            return result;
+        }
+
+        private bool IsSwitchCandidate(ILockable target, bool requireInView)
+        {
+            if (!IsTargetUsable(target) || target.Transform == _transformCache) return false;
+            if (Vector3.Distance(_transformCache.position, target.Transform.position) > maxLockRange) return false;
+            if (requireInView && _viewCameraTransform != null &&
+                Vector3.Angle(_viewCameraTransform.forward, target.Transform.position - _viewCameraTransform.position) > maxLockAngle)
+                return false;
+            return !HasLineOfSightObstacle(target.Transform);
+        }
+
+        /// <summary>Signed horizontal angle of a target around the player, relative to the camera's
+        /// facing (negative = left). Measured from the player, so targets behind still sort sensibly.</summary>
+        private float YawFromView(Transform target)
+        {
+            Vector3 forward = _viewCameraTransform != null ? _viewCameraTransform.forward : _transformCache.forward;
+            Vector3 toTarget = target.position - _transformCache.position;
+            forward.y = 0f;
+            toTarget.y = 0f;
+            return Vector3.SignedAngle(forward, toTarget, Vector3.up);
+        }
+
+        private void SetTarget(ILockable newTarget)
+        {
+            _currentTarget = newTarget;
+            UpdateUI();
+        }
+
+        public void ClearLock()
+        {
+            Debug.Log("[LockOn] Clearing lock.");
+            _currentTarget = null;
+            if (_activeUIInstance != null)
+            {
+                Destroy(_activeUIInstance);
+            }
+        }
+
+        private bool HasLineOfSightObstacle(Transform targetTransform)
+        {
+            if (targetTransform == null) return true;
+
+            // Use camera position, or player position offset upward
+            Vector3 origin = _viewCameraTransform != null ? _viewCameraTransform.position : _transformCache.position + Vector3.up * 1.5f;
+
+            // Target center mass of the enemy
+            Vector3 targetPosition = targetTransform.position + Vector3.up * 1f;
+            Vector3 direction = targetPosition - origin;
+            float distance = direction.magnitude;
+
+            // Perform raycast against obstacle layer
+            if (Physics.Raycast(origin, direction.normalized, out RaycastHit hit, distance, obstacleLayer))
+            {
+                // Ignore hits that belong to the player or the target itself
+                if (hit.transform.root != _transformCache.root && hit.transform.root != targetTransform.root)
+                {
+                    return true; // Genuinely blocked by a wall/obstacle
+                }
+            }
+
+            return false;
+        }
+
+        private void UpdateUI()
+        {
+            if (_activeUIInstance != null) Destroy(_activeUIInstance);
+
+            if (lockOnUIPrefab != null && _currentTarget != null)
+            {
+                _activeUIInstance = Instantiate(lockOnUIPrefab, _currentTarget.Transform);
+                _activeUIInstance.transform.localPosition = new Vector3(0f, 2f, 0f);
+            }
+        }
+    }
+}

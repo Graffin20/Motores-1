@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8a565ddf447713847867593821427fcd
+timeCreated: 1429207880
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: nature_shield
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Materials/Nature_Shield_LOD1.mat
+  uploadId: 218476

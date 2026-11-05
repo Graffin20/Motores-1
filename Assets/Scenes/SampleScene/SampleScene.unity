@@ -1834,7 +1834,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71952304b1c23824dada0377175c2f58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractComponent
-  interactionCamera: {fileID: 2963389397938143368}
+  InteractRange: 3
+  CapsuleRadius: 0.5
+  CapsuleHeight: 1
+  InteractableLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  CastTriggerInteraction: 2
+  interactionCameraOverride: {fileID: 0}
+  rayOrigin: {fileID: 0}
 --- !u!65 &1472796504
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1977,7 +1985,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIBarsManager
   staminaBar: {fileID: 1931059726}
+  healthBar: {fileID: 0}
   playerStamina: {fileID: 7515569786741455245}
+  playerHealth: {fileID: 0}
 --- !u!114 &1785101597
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3373,6 +3383,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 9.871621
       objectReference: {fileID: 0}
+    - target: {fileID: 4398591316269036959, guid: 9a02084bad9333743b6ed4dcb0740530, type: 3}
+      propertyPath: obstacleLayer.m_Bits
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4461228338382202610, guid: 9a02084bad9333743b6ed4dcb0740530, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -4165,7 +4179,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71952304b1c23824dada0377175c2f58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InteractComponent
-  interactionCamera: {fileID: 2963389397938143368}
+  InteractRange: 3
+  CapsuleRadius: 0.5
+  CapsuleHeight: 1
+  InteractableLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  CastTriggerInteraction: 2
+  interactionCameraOverride: {fileID: 0}
+  rayOrigin: {fileID: 0}
 --- !u!1 &7608086035339986227
 GameObject:
   m_ObjectHideFlags: 0

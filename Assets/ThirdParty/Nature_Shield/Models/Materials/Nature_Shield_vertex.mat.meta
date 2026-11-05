@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 6362c17c45bdba744bf7341965d8e866
+timeCreated: 1429211853
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/Models/Materials/Nature_Shield_vertex.mat
+  uploadId: 218476

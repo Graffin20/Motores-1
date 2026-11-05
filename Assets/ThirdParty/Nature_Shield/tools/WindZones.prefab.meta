@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8914f204710e3924eb251caf4192243e
+timeCreated: 1429198498
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 34863
+  packageName: Nature Shield
+  packageVersion: 1.01
+  assetPath: Assets/Nature_Shield/tools/WindZones.prefab
+  uploadId: 218476
